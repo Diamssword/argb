@@ -14,16 +14,17 @@
     window.receive("Serial.receive", (res) => {
         msgs.push(res);
         msgs = msgs;
-       console.log(res);
     });
 let refresher= asyncwait();
     async function asyncwait() {
 		return;
 	}
 </script>
+<div style="overflow:scroll; height:100px;">
 {#each msgs as msg}
 <p>{msg}</p>
 {/each}
+</div>
 
 <TextInput bind:value={text}></TextInput><Button on:click={send} >ok</Button>
 <style>

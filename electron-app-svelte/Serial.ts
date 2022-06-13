@@ -58,3 +58,4 @@ function openPort(port:SerialPort,window:BrowserWindow )
           })
       })
 }
+

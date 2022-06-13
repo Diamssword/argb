@@ -49,7 +49,6 @@ function init(main) {
 exports.init = init;
 function openPort(port, window) {
     port.on('data', function (data) {
-        console.log(data);
         window.webContents.send("Serial.receive", data.toString());
     });
     electron_1.ipcMain.on("Serial.send", function (ev, args) {

@@ -3,6 +3,7 @@
 	import { AppShell, Navbar, Header} from '@svelteuidev/core';
 	import  Serial from './components/portSelect.svelte'
 	import  SerialChat from './components/serialChat.svelte'
+	import  CreateAnimation from './components/createAnimation.svelte'
 	export let name;
 	let isDark = true;
 	let opened = true;
@@ -33,6 +34,7 @@
 <main>
 	<h1>Hello {name}!</h1>
 <SerialChat></SerialChat>
+<CreateAnimation/>
 	<Button variant="outline" color="yellow" radius="xl" size="md" ripple>
 		Settings
 	  </Button>

@@ -16,23 +16,13 @@
     window.send("Serial.send","/argb "+led.getCommand());
   }
 </script>
-
+//https://betterdiscord.app/plugins
 <NumberInput bind:value={anim}  description="Animation"/>
 <NumberInput bind:value={fps}  description="FPS"/>
 <NumberInput bind:value={timer} description="Time"/>
-<input type="color" on:change={(ev)=>{c1=ev.target.value}}/>
-<input type="color" on:change={(ev)=>{c2=ev.target.value}}/>
+<input type="color" on:change={(ev)=>{c1=ev.target.value}} style="height:50px"/>
+<input type="color" on:change={(ev)=>{c2=ev.target.value}} style="height:50px"/>
 <Button on:click={send} ></Button>
 <style>
 
-.icon{
-    width:20%; 
-    padding:10px; 
-    margin-top: 5%;     
-}
-.cont{
-    width: 95%;
-    float:left;
-    display: flex;
-}
 </style>

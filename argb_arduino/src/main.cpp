@@ -22,6 +22,7 @@ void (*modeFN)(void);
 uint8_t hue = 0;         // rotating "base color" used by many of the patterns
 int pos = 0;             // index de la derniere led changée
 boolean reverse = false; // si on devrait tournée 'en arriere'
+boolean reverse1 = false;
 boolean shouldUpdate = false;
 
 CHSV color1 = CHSV(255, 255, 255);
@@ -82,21 +83,20 @@ void rainbow()
 }
 void oddeven()
 {
-  FastLED.clear();
-  if (shouldUpdate)
-  {
-    color1.v=255;
+   color1.v=255;
     color2.v=255;
-    reverse = !reverse;
-    hue = reverse ? 255 : 0;
-    shouldUpdate = false;
-  }
-  hue += reverse ? -1 : +1;
+  FastLED.clear();
+  
+  hue += reverse1 ? -1 : +1;
   if (hue >= 255)
   {
-    shouldUpdate = true;
+    reverse1 = true;
+    reverse=!reverse;
   }
-
+  if(hue<=0)
+  {
+    reverse1=false;
+  }
   for (int k = (reverse ? 0 : 2); k < NUM_LEDS; k += 4)
   {
 
@@ -104,6 +104,7 @@ void oddeven()
     leds[k] = col;
     leds[k] = leds[k].fadeToBlackBy(hue);
   }
+  
   // FastLED's built-in rainbow generator
   FastLED.show();
 }

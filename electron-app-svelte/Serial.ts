@@ -1,9 +1,15 @@
 import { SerialPort } from 'serialport';
 import {app, BrowserWindow,ipcMain} from 'electron';
+import {currentAnimation,LedAnimation,setCurrent} from './Animations';
 
 var currentPort: SerialPort|undefined;
 export function init(main: BrowserWindow)
 {
+
+    ipcMain.on("Animaion.setCurrent",(ev,...args)=>{
+        setCurrent(new LedAnimation("").formJson(args[0]));
+    });
+
     ipcMain.on("Serial.ports",(ev,...args)=>{
         SerialPort.list().then((ports)=>{
                 if(ports)
@@ -58,4 +64,14 @@ function openPort(port:SerialPort,window:BrowserWindow )
           })
       })
 }
-
+export function send(str:string)
+{
+if(currentPort?.isOpen)
+{
+    currentPort.write(str+'\n', function(err) {
+        if (err) {
+          return console.log('Error on write: ', err.message)
+        }
+      })
+}
+}

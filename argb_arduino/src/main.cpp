@@ -11,8 +11,6 @@ CRGB leds[NUM_LEDS];
 
 #define BRIGHTNESS 255
 
-#define TEMPERATURE_1 Tungsten100W
-#define TEMPERATURE_2 OvercastSky
 
 int MainTimer=0;
 int MainTimer1=0;
@@ -57,6 +55,7 @@ void IndexChangeReverse()
     pos = 0;
   }
 }
+
 void IndexChange()
 {
   pos++;
@@ -71,6 +70,26 @@ void cylon()
   leds[pos] = CHSV(hue++, 255, 255);
   FastLED.show();
   fadeall();
+}
+void pulse()
+{
+  color1.v=255;
+  color2.v=255;
+  hue +=reverse? 1:-1;
+  if(hue>255)
+  {
+    reverse = true;
+    hue--;
+  }
+  else if(hue<0)
+  {
+    reverse=false;
+    hue++;
+  }
+  CRGB t= CRGB(color1);
+  CRGB t1= CRGB(color2);
+  fill_gradient_RGB(leds,NUM_LEDS,t.fadeToBlackBy(hue),t1.fadeToBlackBy(hue));
+  FastLED.show();
 }
 
 void rainbow()
@@ -120,6 +139,10 @@ switch (mode)
           break;
         case 3:
           modeFN = &oddeven;
+          break;
+            case 4:
+            hue=255;
+          modeFN = &pulse;
           break;
         default:
           modeFN = &rainbow;
@@ -255,15 +278,15 @@ void loop()
     }
     serialMsg = "";
   }
-  delay(10);
+  delay(1);
   MainTimer++;
   MainTimer1++;
-  if(MainTimer>=100/fps)
+  if(MainTimer>=1000/fps)
   {
     modeFN();
     MainTimer=0;
   }
-  if (time > -1 &&MainTimer1>=time/10)
+  if (time > -1 &&MainTimer1>=time)
   {
     shouldUpdate=true;
     MainTimer1=0;

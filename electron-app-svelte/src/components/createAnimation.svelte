@@ -1,6 +1,6 @@
 <script>
    import { TextInput,Button,NumberInput } from '@svelteuidev/core';
-  import {LedAnimation,HSV} from "../../build/Animations";
+  import {LedAnimation,HSV,setCurrent} from "../../build/Animations";
   
   var led = new LedAnimation("test");
   var fps;
@@ -12,11 +12,14 @@
   function send()
   {
     led.colors=[];
+    
     led.setAnimation(anim).setFPS(fps).setTimer(timer).addHtmlColors(c1,c2);
-    window.send("Serial.send","/argb "+led.getCommand());
+   // led.send();
+   window.send("Animaion.setCurrent",led.toJson());
+    window.send("Serial.send",led.getCommand());
   }
-</script>
 //https://betterdiscord.app/plugins
+</script>
 <NumberInput bind:value={anim}  description="Animation"/>
 <NumberInput bind:value={fps}  description="FPS"/>
 <NumberInput bind:value={timer} description="Time"/>

@@ -1,10 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.init = void 0;
+exports.send = exports.init = void 0;
 var serialport_1 = require("serialport");
 var electron_1 = require("electron");
+var Animations_1 = require("./Animations");
 var currentPort;
 function init(main) {
+    electron_1.ipcMain.on("Animaion.setCurrent", function (ev) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        (0, Animations_1.setCurrent)(new Animations_1.LedAnimation("").formJson(args[0]));
+    });
     electron_1.ipcMain.on("Serial.ports", function (ev) {
         var args = [];
         for (var _i = 1; _i < arguments.length; _i++) {
@@ -59,3 +67,13 @@ function openPort(port, window) {
         });
     });
 }
+function send(str) {
+    if (currentPort === null || currentPort === void 0 ? void 0 : currentPort.isOpen) {
+        currentPort.write(str + '\n', function (err) {
+            if (err) {
+                return console.log('Error on write: ', err.message);
+            }
+        });
+    }
+}
+exports.send = send;

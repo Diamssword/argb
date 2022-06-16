@@ -2,7 +2,7 @@ import {app, BrowserWindow,ipcMain} from 'electron';
 //const { app, BrowserWindow,ipcMain } = require("electron");
 import path from "path";
 import {init as SerialInit }from "./Serial";
-
+import {init as EventInit} from './EventWatcher'
 app.on("ready", () => {
   const mainWindow = new BrowserWindow(
     {
@@ -16,5 +16,6 @@ app.on("ready", () => {
   mainWindow.loadFile(path.join(__dirname, "../public/index.html"));
   mainWindow.webContents.openDevTools();
   SerialInit(mainWindow);
+  EventInit()
   
 });

@@ -9,10 +9,10 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LedAnimation = void 0;
+exports.currentAnimation = exports.setCurrent = exports.LedAnimation = void 0;
 var LedAnimation = /** @class */ (function () {
     function LedAnimation(name) {
-        this.animation = "none";
+        this.animation = 0;
         this.fps = 120;
         this.timer = 2000;
         this.colors = [];
@@ -65,11 +65,23 @@ var LedAnimation = /** @class */ (function () {
             cols += col.hue + "/" + col.saturation + "/" + col.value + ",";
         }
         cols = cols.substring(0, cols.length - 2);
-        return "a:".concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";");
+        return "/argb a:".concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";");
+    };
+    LedAnimation.prototype.formJson = function (jsonStr) {
+        var ob = JSON.parse(jsonStr);
+        Object.assign(this, ob);
+        return this;
+    };
+    LedAnimation.prototype.toJson = function () {
+        return JSON.stringify(this);
     };
     return LedAnimation;
 }());
 exports.LedAnimation = LedAnimation;
+function setCurrent(current) {
+    exports.currentAnimation = current;
+}
+exports.setCurrent = setCurrent;
 function rgb2hsv(rgb) {
     var rabs, gabs, babs, rr, gg, bb, s, diff = 0;
     var h = 0;

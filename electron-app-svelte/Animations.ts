@@ -1,5 +1,4 @@
 
-
 export class LedAnimation {
     name: string;
     animation=0;
@@ -60,9 +59,24 @@ export class LedAnimation {
             cols+=col.hue+"/"+col.saturation+"/"+col.value+",";
         }
         cols=cols.substring(0,cols.length-2);
-        return `a:${this.animation};f:${this.fps};t:${this.timer};c:${cols};`
+        return `/argb a:${this.animation};f:${this.fps};t:${this.timer};c:${cols};`
+    }
+    formJson(jsonStr:string )
+    {
+            var ob=JSON.parse(jsonStr)   ;
+            Object.assign(this,ob);
+            return this;
+    }
+    toJson()
+    {
+        return JSON.stringify(this);
     }
 }
+export function setCurrent(current:LedAnimation)
+{
+    currentAnimation=current;
+}
+export var currentAnimation:LedAnimation;
 export type HSV={
     hue : number,
     saturation:number,

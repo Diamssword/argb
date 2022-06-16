@@ -7,6 +7,7 @@ var electron_1 = require("electron");
 //const { app, BrowserWindow,ipcMain } = require("electron");
 var path_1 = __importDefault(require("path"));
 var Serial_1 = require("./Serial");
+var EventWatcher_1 = require("./EventWatcher");
 electron_1.app.on("ready", function () {
     var mainWindow = new electron_1.BrowserWindow({
         webPreferences: {
@@ -18,4 +19,5 @@ electron_1.app.on("ready", function () {
     mainWindow.loadFile(path_1.default.join(__dirname, "../public/index.html"));
     mainWindow.webContents.openDevTools();
     (0, Serial_1.init)(mainWindow);
+    (0, EventWatcher_1.init)();
 });

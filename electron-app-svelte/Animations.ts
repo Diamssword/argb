@@ -72,11 +72,6 @@ export class LedAnimation {
         return JSON.stringify(this);
     }
 }
-export function setCurrent(current:LedAnimation)
-{
-    currentAnimation=current;
-}
-export var currentAnimation:LedAnimation;
 export type HSV={
     hue : number,
     saturation:number,

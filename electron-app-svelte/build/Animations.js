@@ -9,7 +9,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.currentAnimation = exports.setCurrent = exports.LedAnimation = void 0;
+exports.LedAnimation = void 0;
 var LedAnimation = /** @class */ (function () {
     function LedAnimation(name) {
         this.animation = 0;
@@ -78,10 +78,6 @@ var LedAnimation = /** @class */ (function () {
     return LedAnimation;
 }());
 exports.LedAnimation = LedAnimation;
-function setCurrent(current) {
-    exports.currentAnimation = current;
-}
-exports.setCurrent = setCurrent;
 function rgb2hsv(rgb) {
     var rabs, gabs, babs, rr, gg, bb, s, diff = 0;
     var h = 0;

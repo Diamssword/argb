@@ -1,6 +1,7 @@
-import {LedAnimation,currentAnimation} from "../Animations"
+import {LedAnimation} from "../Animations"
 import {send} from "../Serial"
 module.exports={getEvent,onEvent}
+import {getCurrent} from '../Profiles'
 
 function getEvent()
 {
@@ -17,8 +18,9 @@ function onEvent(data:any,event:String )
         fps=128;
     send(new LedAnimation("ping").addColors({hue:255,saturation:255,value:255},{hue:255,saturation:255,value:255}).setAnimation(4).setFPS(fps).getCommand());
     setTimeout(()=>{
-        if(currentAnimation)
-            send(currentAnimation.getCommand());
+        var d = getCurrent();
+        if(d)
+            send(d.getCommand());
     },(256/fps)*1000)
 
 }

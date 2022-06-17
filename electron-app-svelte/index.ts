@@ -3,7 +3,10 @@ import {app, BrowserWindow,ipcMain} from 'electron';
 import path from "path";
 import {init as SerialInit }from "./Serial";
 import {init as EventInit} from './EventWatcher'
+import {initDefault} from './storage'
+import {init as ProfileInit} from './Profiles'
 app.on("ready", () => {
+  (global as any).__software= path.join(app.getPath('appData'),"argbled");
   const mainWindow = new BrowserWindow(
     {
         webPreferences:{
@@ -13,9 +16,11 @@ app.on("ready", () => {
         }
     }
   );
+  initDefault((global as any).__software);
   mainWindow.loadFile(path.join(__dirname, "../public/index.html"));
   mainWindow.webContents.openDevTools();
   SerialInit(mainWindow);
-  EventInit()
+  EventInit();
+  ProfileInit();
   
 });

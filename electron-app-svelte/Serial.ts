@@ -1,6 +1,7 @@
 import { SerialPort } from 'serialport';
 import {app, BrowserWindow,ipcMain} from 'electron';
-import {currentAnimation,LedAnimation,setCurrent} from './Animations';
+import {LedAnimation} from './Animations';
+import {getCurrent,setCurrent} from './Profiles'
 
 var currentPort: SerialPort|undefined;
 export function init(main: BrowserWindow)
@@ -63,6 +64,9 @@ function openPort(port:SerialPort,window:BrowserWindow )
             }
           })
       })
+      var led=getCurrent()
+      if(led)
+      send(led.getCommand());
 }
 export function send(str:string)
 {

@@ -11,9 +11,8 @@ CRGB leds[NUM_LEDS];
 
 #define BRIGHTNESS 255
 
-
-int MainTimer=0;
-int MainTimer1=0;
+int MainTimer = 0;
+int MainTimer1 = 0;
 int fps = 100; // nombre de fois ou la boucle d'animation est executé par seconde
 int time = -1; // time m'est la var "shouldUpdate" a true tout les X temps (compteur parallele aux fps)
 void (*modeFN)(void);
@@ -26,13 +25,6 @@ boolean shouldUpdate = false;
 CHSV color1 = CHSV(255, 255, 255);
 CHSV color2 = CHSV(125, 255, 255);
 
-void fadeall()
-{
-  for (int i = 0; i < NUM_LEDS; i++)
-  {
-    leds[i].nscale8(250);
-  }
-}
 CHSV darken(CHSV color, int brightness)
 {
 
@@ -69,26 +61,30 @@ void cylon()
   IndexChangeReverse();
   leds[pos] = CHSV(hue++, 255, 255);
   FastLED.show();
-  fadeall();
+  // fading
+  for (int i = 0; i < NUM_LEDS; i++)
+  {
+    leds[i].nscale8(250);
+  }
 }
 void pulse()
 {
-  color1.v=255;
-  color2.v=255;
-  hue +=reverse? 1:-1;
-  if(hue>255)
+  color1.v = 255;
+  color2.v = 255;
+  hue += reverse ? 1 : -1;
+  if (hue > 255)
   {
     reverse = true;
     hue--;
   }
-  else if(hue<0)
+  else if (hue < 0)
   {
-    reverse=false;
+    reverse = false;
     hue++;
   }
-  CRGB t= CRGB(color1);
-  CRGB t1= CRGB(color2);
-  fill_gradient_RGB(leds,NUM_LEDS,t.fadeToBlackBy(hue),t1.fadeToBlackBy(hue));
+  CRGB t = CRGB(color1);
+  CRGB t1 = CRGB(color2);
+  fill_gradient_RGB(leds, NUM_LEDS, t.fadeToBlackBy(hue), t1.fadeToBlackBy(hue));
   FastLED.show();
 }
 
@@ -102,19 +98,19 @@ void rainbow()
 }
 void oddeven()
 {
-   color1.v=255;
-    color2.v=255;
+  color1.v = 255;
+  color2.v = 255;
   FastLED.clear();
-  
+
   hue += reverse1 ? -1 : +1;
   if (hue >= 255)
   {
     reverse1 = true;
-    reverse=!reverse;
+    reverse = !reverse;
   }
-  if(hue<=0)
+  if (hue <= 0)
   {
-    reverse1=false;
+    reverse1 = false;
   }
   for (int k = (reverse ? 0 : 2); k < NUM_LEDS; k += 4)
   {
@@ -123,54 +119,55 @@ void oddeven()
     leds[k] = col;
     leds[k] = leds[k].fadeToBlackBy(hue);
   }
-  
+
   // FastLED's built-in rainbow generator
   FastLED.show();
 }
 void setMode(int mode)
 {
-switch (mode)
-        {
-        case 1:
-          modeFN = &rainbow;
-          break;
-        case 2:
-          modeFN = &cylon;
-          break;
-        case 3:
-          modeFN = &oddeven;
-          break;
-            case 4:
-            hue=255;
-          modeFN = &pulse;
-          break;
-        default:
-          modeFN = &rainbow;
-          break;
-        }
+  switch (mode)
+  {
+  case 1:
+    modeFN = &rainbow;
+    break;
+  case 2:
+    modeFN = &cylon;
+    break;
+  case 3:
+    modeFN = &oddeven;
+    break;
+  case 4:
+    hue = 255;
+    modeFN = &pulse;
+    break;
+  default:
+    modeFN = &rainbow;
+    break;
+  }
 }
 void readConfig()
 {
- setMode(EEPROM.read(0));
- fps =EEPROM.read(1);
-// time =EEPROM.read(2); max 255> pas d'interet a sauvegarde une valeur en ms (et pas possible de save -1)
- color1= CHSV(EEPROM.read(3),EEPROM.read(4),EEPROM.read(5));
- color2= CHSV(EEPROM.read(6),EEPROM.read(7),EEPROM.read(8));
+  setMode(EEPROM.read(0));
+  fps = EEPROM.read(1);
+  // time =EEPROM.read(2); max 255> pas d'interet a sauvegarde une valeur en ms (et pas possible de save -1)
+  color1 = CHSV(EEPROM.read(3), EEPROM.read(4), EEPROM.read(5));
+  color2 = CHSV(EEPROM.read(6), EEPROM.read(7), EEPROM.read(8));
 }
 void saveConfig(int mode)
 {
- EEPROM.write(0,mode);
- EEPROM.write(1,fps);
-// EEPROM.write(2,time);
- EEPROM.write(3,color1.h);
- EEPROM.write(4,color1.s);
- EEPROM.write(5,color1.v);
- EEPROM.write(6,color2.h);
- EEPROM.write(7,color2.s);
- EEPROM.write(8,color2.v);
+  EEPROM.write(0, mode);
+  EEPROM.write(1, fps);
+  // EEPROM.write(2,time);
+  EEPROM.write(3, color1.h);
+  EEPROM.write(4, color1.s);
+  EEPROM.write(5, color1.v);
+  EEPROM.write(6, color2.h);
+  EEPROM.write(7, color2.s);
+  EEPROM.write(8, color2.v);
 }
 void receiveCommand(String s)
 {
+  int mode = 0;
   while (s.length() > 0)
   {
     int pos = s.indexOf(":");
@@ -186,7 +183,7 @@ void receiveCommand(String s)
       if (cmd == 'c')
       {
         boolean shouldExit = false;
-        boolean col2=false;
+        boolean col2 = false;
         while (content.length() > 0)
         {
           int pos2 = content.indexOf(',');
@@ -202,38 +199,39 @@ void receiveCommand(String s)
           {
             int pos3 = col.indexOf('/');
             int i1 = col.substring(0, pos3).toInt();
-            col =col.substring(pos3+1);
+            col = col.substring(pos3 + 1);
             if (k == 0)
-              colo.h=i1;
+              colo.h = i1;
             else if (k == 1)
-              colo.s=i1;
+              colo.s = i1;
             else if (k == 2)
-              colo.v=i1;
+              colo.v = i1;
           }
-          if(col2)
-          color2 = colo;
+          if (col2)
+            color2 = colo;
           else
-          color1 = colo;
-          
+            color1 = colo;
+
           content = content.substring(pos2 + 1);
-          col2= true;
+          col2 = true;
           if (shouldExit)
             break;
         }
       }
-      else if (cmd == 'a')
-      {
-        int m = content.toInt();
-        saveConfig(m);
-        setMode(m);
-      }
       else
       {
         int m = content.toInt();
-        if (cmd == 'f')
+        if (cmd == 'a')
+        {
+          mode = m;
+          setMode(mode);
+        }
+        else if (cmd == 'f')
           fps = m;
         else if (cmd == 't')
           time = m;
+        else if (cmd == 's')
+          saveConfig(mode);
       }
     }
     if (pos <= -1 || pos1 <= -1)
@@ -251,7 +249,7 @@ void setup()
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
   modeFN = &rainbow;
-  if(EEPROM.read(0)!=255)
+  if (EEPROM.read(0) != 255)
     readConfig();
 }
 String serialMsg = "";
@@ -266,7 +264,7 @@ void loop()
   while (Serial.available() > 0)
   {
     char c = Serial.read(); // gets one byte from serial buffer
-    serialMsg += c; // makes the string readString
+    serialMsg += c;         // makes the string readString
     if (c == '\n' || c == '\r')
       break;
   }
@@ -281,16 +279,16 @@ void loop()
   delay(1);
   MainTimer++;
   MainTimer1++;
-  if(MainTimer>=1000/fps)
+  if (MainTimer >= 1000 / fps)
   {
     modeFN();
-    MainTimer=0;
+    MainTimer = 0;
   }
-  if (time > -1 &&MainTimer1>=time)
+  if (time > -1 && MainTimer1 >= time)
   {
-    shouldUpdate=true;
-    MainTimer1=0;
+    shouldUpdate = true;
+    MainTimer1 = 0;
   }
- 
+
   // do some periodic updates
 }

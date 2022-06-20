@@ -4,6 +4,7 @@
 	import  Serial from './components/portSelect.svelte'
 	import  SerialChat from './components/serialChat.svelte'
 	import  CreateAnimation from './components/createAnimation.svelte'
+	import  LedAnim from './components/led_animator.svelte'
 	export let name;
 	let isDark = true;
 	let opened = true;
@@ -35,6 +36,7 @@
 	<h1>Hello {name}!</h1>
 <SerialChat></SerialChat>
 <CreateAnimation/>
+<LedAnim></LedAnim>
 	<Button variant="outline" color="yellow" radius="xl" size="md" ripple>
 		Settings
 	  </Button>

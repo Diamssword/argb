@@ -10,12 +10,14 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LedAnimation = void 0;
+var ColorsUtil_1 = require("./ColorsUtil");
 var LedAnimation = /** @class */ (function () {
     function LedAnimation(name) {
         this.animation = 0;
         this.fps = 120;
         this.timer = 2000;
         this.colors = [];
+        this.save = false;
         this.name = name;
     }
     LedAnimation.prototype.setFPS = function (fps) {
@@ -28,6 +30,10 @@ var LedAnimation = /** @class */ (function () {
     };
     LedAnimation.prototype.setTimer = function (timer) {
         this.timer = timer;
+        return this;
+    };
+    LedAnimation.prototype.setSave = function (save) {
+        this.save = save;
         return this;
     };
     LedAnimation.prototype.addColors = function () {
@@ -44,8 +50,8 @@ var LedAnimation = /** @class */ (function () {
             colors[_i] = arguments[_i];
         }
         for (var k in colors) {
-            var rgb = hexToRgb(colors[k]);
-            var hsv = rgb2hsv(rgb);
+            var rgb = (0, ColorsUtil_1.hexToRgb)(colors[k]);
+            var hsv = (0, ColorsUtil_1.rgb2hsv)(rgb);
             this.colors.push(hsv);
         }
         return this;
@@ -53,8 +59,8 @@ var LedAnimation = /** @class */ (function () {
     LedAnimation.prototype.getHTMLColors = function () {
         var res = [];
         for (var k in this.colors) {
-            var rgb = HSVtoRGB(this.colors[k]);
-            res.push(rgbToHex(rgb.r, rgb.g, rgb.b));
+            var rgb = (0, ColorsUtil_1.HSVtoRGB)(this.colors[k]);
+            res.push((0, ColorsUtil_1.rgbToHex)(rgb.r, rgb.g, rgb.b));
         }
         return res;
     };
@@ -65,7 +71,7 @@ var LedAnimation = /** @class */ (function () {
             cols += col.hue + "/" + col.saturation + "/" + col.value + ",";
         }
         cols = cols.substring(0, cols.length - 2);
-        return "/argb a:".concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";");
+        return "/argb a:".concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";").concat(this.save ? "s:1;" : "");
     };
     LedAnimation.prototype.formJson = function (jsonStr) {
         var ob = JSON.parse(jsonStr);
@@ -78,99 +84,12 @@ var LedAnimation = /** @class */ (function () {
     return LedAnimation;
 }());
 exports.LedAnimation = LedAnimation;
-function rgb2hsv(rgb) {
-    var rabs, gabs, babs, rr, gg, bb, s, diff = 0;
-    var h = 0;
-    var v = 0;
-    rabs = rgb.r / 255;
-    gabs = rgb.g / 255;
-    babs = rgb.b / 255;
-    v = Math.max(rabs, gabs, babs),
-        diff = v - Math.min(rabs, gabs, babs);
-    var diffc = function (c) { return (v - c) / 6 / diff + 1 / 2; };
-    var percentRoundFn = function (num) { return Math.round(num * 100) / 100; };
-    if (diff == 0) {
-        h = s = 0;
-    }
-    else {
-        s = diff / v;
-        rr = diffc(rabs);
-        gg = diffc(gabs);
-        bb = diffc(babs);
-        if (rabs === v) {
-            h = bb - gg;
-        }
-        else if (gabs === v) {
-            h = (1 / 3) + rr - bb;
-        }
-        else if (babs === v) {
-            h = (2 / 3) + gg - rr;
-        }
-        if (h < 0) {
-            h += 1;
-        }
-        else if (h > 1) {
-            h -= 1;
-        }
-    }
-    return {
-        hue: Math.round(h * 255),
-        saturation: Math.round(percentRoundFn(s * 255)),
-        value: Math.round(percentRoundFn(v * 255))
-    };
-}
-function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    var res = { b: 0, g: 0, r: 0 };
-    if (result)
-        res = {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        };
-    return res;
-}
-function componentToHex(c) {
-    var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
-}
-function rgbToHex(r, g, b) {
-    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
-function HSVtoRGB(hsv) {
-    hsv = { value: hsv.value / 255, hue: hsv.hue / 255, saturation: hsv.saturation / 255 };
-    var i, f, p, q, t;
-    var r = 0;
-    var g = 0;
-    var b = 0;
-    i = Math.floor(hsv.hue * 6);
-    f = hsv.hue * 6 - i;
-    p = hsv.value * (1 - hsv.saturation);
-    q = hsv.value * (1 - f * hsv.saturation);
-    t = hsv.value * (1 - (1 - f) * hsv.saturation);
-    switch (i % 6) {
-        case 0:
-            r = hsv.value, g = t, b = p;
-            break;
-        case 1:
-            r = q, g = hsv.value, b = p;
-            break;
-        case 2:
-            r = p, g = hsv.value, b = t;
-            break;
-        case 3:
-            r = p, g = q, b = hsv.value;
-            break;
-        case 4:
-            r = t, g = p, b = hsv.value;
-            break;
-        case 5:
-            r = hsv.value, g = p, b = q;
-            break;
-    }
-    return {
-        r: Math.round(r * 255),
-        g: Math.round(g * 255),
-        b: Math.round(b * 255)
-    };
-}
+/* commandes:
+    a: int > id de l'animation
+    f: int > fps
+    t: int > timer
+    c: HSV > couleurs sous form de liste formaé comme ça : h1/s1/v1,h2/s2/v2,...
+    s: any > commande a mettre en dernier pour tenter de sauvegardé l'animation sur l'arduino
+
+
+*/

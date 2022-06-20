@@ -2,11 +2,34 @@ import { SerialPort } from 'serialport';
 import {app, BrowserWindow,ipcMain} from 'electron';
 import {LedAnimation} from './Animations';
 import {getCurrent,setCurrent} from './Profiles'
+import {StorageInstance} from './storage'
 
 var currentPort: SerialPort|undefined;
+export function close()
+{
+    if(currentPort && currentPort.isOpen)
+    {
+        
+        currentPort.close()
+        currentPort.destroy()
+    }
+}
 export function init(main: BrowserWindow)
 {
-
+    var store = new StorageInstance("serial");
+    var p = store.get("lastPort");
+    if(p && typeof p == 'string' && p.length>1)
+    {
+        currentPort=new SerialPort({ path:p, baudRate: 9600 },err=>{
+            if(err)
+            {
+            
+            currentPort = undefined;
+            }
+        });
+        openPort(currentPort,main);
+       main.webContents.send("Serial.state",{connected:currentPort.path});
+    }
     ipcMain.on("Animaion.setCurrent",(ev,...args)=>{
         setCurrent(new LedAnimation("").formJson(args[0]));
     });
@@ -44,6 +67,8 @@ export function init(main: BrowserWindow)
    
             if(currentPort  && currentPort.path)
             {
+                store.set("lastPort",args[0]);
+                store.save();
                 openPort(currentPort,main);
             ev.sender.send("Serial.state",{connected:currentPort.path});
             }

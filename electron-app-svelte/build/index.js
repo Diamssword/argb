@@ -22,6 +22,11 @@ electron_1.app.on("ready", function () {
     (0, storage_1.initDefault)(global.__software);
     mainWindow.loadFile(path_1.default.join(__dirname, "../public/index.html"));
     mainWindow.webContents.openDevTools();
+    electron_1.app.on("window-all-closed", function () {
+        (0, Serial_1.close)();
+        electron_1.app.quit();
+        return;
+    });
     (0, Serial_1.init)(mainWindow);
     (0, EventWatcher_1.init)();
     (0, Profiles_1.init)();

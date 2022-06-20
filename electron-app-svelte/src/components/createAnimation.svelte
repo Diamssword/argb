@@ -16,7 +16,7 @@
     led.setAnimation(anim).setFPS(fps).setTimer(timer).addHtmlColors(c1,c2);
    // led.send();
    window.send("Animaion.setCurrent",led.toJson());
-    window.send("Serial.send",led.getCommand());
+    window.send("Serial.send",led.setSave(true).getCommand());
   }
 //https://betterdiscord.app/plugins
 </script>

@@ -1,12 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.send = exports.init = void 0;
+exports.send = exports.init = exports.close = void 0;
 var serialport_1 = require("serialport");
 var electron_1 = require("electron");
 var Animations_1 = require("./Animations");
 var Profiles_1 = require("./Profiles");
+var storage_1 = require("./storage");
 var currentPort;
+function close() {
+    if (currentPort) {
+        currentPort.close();
+        currentPort.destroy();
+    }
+}
+exports.close = close;
 function init(main) {
+    var store = new storage_1.StorageInstance("serial");
+    var p = store.get("lastPort");
+    if (p && typeof p == 'string' && p.length > 1) {
+        currentPort = new serialport_1.SerialPort({ path: p, baudRate: 9600 }, function (err) {
+            if (err) {
+                currentPort = undefined;
+            }
+        });
+        openPort(currentPort, main);
+        main.webContents.send("Serial.state", { connected: currentPort.path });
+    }
     electron_1.ipcMain.on("Animaion.setCurrent", function (ev) {
         var args = [];
         for (var _i = 1; _i < arguments.length; _i++) {
@@ -48,6 +67,8 @@ function init(main) {
                 }
             });
             if (currentPort && currentPort.path) {
+                store.set("lastPort", args[0]);
+                store.save();
                 openPort(currentPort, main);
                 ev.sender.send("Serial.state", { connected: currentPort.path });
             }

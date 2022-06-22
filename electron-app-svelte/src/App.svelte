@@ -1,11 +1,8 @@
 <script>
 	import { fns,SvelteUIProvider, Switch,Button } from "@svelteuidev/core";
 	import { AppShell, Navbar, Header} from '@svelteuidev/core';
-	import  Serial from './components/portSelect.svelte'
-	import  SerialChat from './components/serialChat.svelte'
-	import  CreateAnimation from './components/createAnimation.svelte'
-	import  LedAnim from './components/led_animator.svelte'
-	export let name;
+	import  General from './pages/General.svelte'
+	import  Hardware from './pages/HardwareEdit.svelte'
 	let isDark = true;
 	let opened = true;
 	function toggleTheme() {
@@ -14,35 +11,41 @@
 	function toggleOpened() {
 		opened = !opened;
 	}
+	var pages = {
+		"general":General,
+		"hardware":Hardware
+	}
+	var currentPage ="hardware"
 </script>
 <SvelteUIProvider withGlobalStyles themeObserver={isDark ? 'dark' : 'light'}>
 	<AppShell
 	override={{
 		main: { bc: isDark ? fns.themeColor('dark', 8) : fns.themeColor('gray', 0) }
 	}}>
-	<Navbar
-	slot="navbar"
-	hidden={!opened}
-	width={{ base: 300 }}
-	override={{ p: 'xsdPX' }}>
+<Navbar
+slot="navbar"
+hidden={!opened}
+width={{ base: 300 }}
+override={{ p: 'xsdPX' }}
+>
 
-	<Serial></Serial>
+<Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="general"}}>General</Button>
+<Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="hardware"}}>Hardware</Button>
+
 </Navbar>
 <Header slot="header" height={60} override={{ p: '$mdPX' }}>
+	<div class="left-aligned">
+		<Switch checked={true} on:change={toggleTheme} />
+		</div>
 </Header>
-    <Switch checked={true} on:change={toggleTheme} />
-    <Switch checked={true} on:change={toggleOpened} />
+  
 <main>
-	<h1>Hello {name}!</h1>
-<SerialChat></SerialChat>
-<CreateAnimation/>
-<LedAnim></LedAnim>
-	<Button variant="outline" color="yellow" radius="xl" size="md" ripple>
-		Settings
-	  </Button>
+	<svelte:component this={pages[currentPage]}/>
 </main>
 </AppShell>
 </SvelteUIProvider>
 <style>
-
+.left-aligned{
+	float: bottom;
+}
 </style>

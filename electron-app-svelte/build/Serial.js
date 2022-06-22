@@ -8,7 +8,7 @@ var Profiles_1 = require("./Profiles");
 var storage_1 = require("./storage");
 var currentPort;
 function close() {
-    if (currentPort) {
+    if (currentPort && currentPort.isOpen) {
         currentPort.close();
         currentPort.destroy();
     }

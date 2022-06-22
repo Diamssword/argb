@@ -12,6 +12,9 @@
     function refreshRender(){
         
         for (var i in led_dom) {
+            var d= leds[i]
+            if(d && led_dom[i])
+            {
             var rg = HSVtoRGB(leds[i])
             var colorStr =
             rg.r +
@@ -23,6 +26,7 @@
             var colorAlpha = "rgba(" + colorStr + ",0.4)";
             led_dom[i].style.background = color;
             led_dom[i].style.boxShadow =`0px -${5/pSizeRatio}px ${30/pSizeRatio}px ${20/pSizeRatio}px ${colorAlpha},0px -${30/pSizeRatio}px ${30/pSizeRatio}px ${10/pSizeRatio}px ${colorAlpha}`; 
+            }
         }
     }
 

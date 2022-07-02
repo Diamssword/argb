@@ -3,6 +3,7 @@
 	import { AppShell, Navbar, Header} from '@svelteuidev/core';
 	import  General from './pages/General.svelte'
 	import  Hardware from './pages/HardwareEdit.svelte'
+	import  Animator from './pages/AnimatorEdit.svelte'
 	let isDark = true;
 	let opened = true;
 	function toggleTheme() {
@@ -13,9 +14,10 @@
 	}
 	var pages = {
 		"general":General,
-		"hardware":Hardware
+		"hardware":Hardware,
+		"animator":Animator
 	}
-	var currentPage ="hardware"
+	var currentPage ="animator";
 </script>
 <SvelteUIProvider withGlobalStyles themeObserver={isDark ? 'dark' : 'light'}>
 	<AppShell
@@ -30,6 +32,7 @@ override={{ p: 'xsdPX' }}
 >
 
 <Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="general"}}>General</Button>
+<Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="animator"}}>Animator</Button>
 <Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="hardware"}}>Hardware</Button>
 
 </Navbar>

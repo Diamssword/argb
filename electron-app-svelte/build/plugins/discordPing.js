@@ -14,10 +14,10 @@ function onEvent(data, event) {
     }
     if (fps < 128)
         fps = 128;
-    (0, Serial_1.send)(new Animations_1.LedAnimation("ping").addColors({ hue: 255, saturation: 255, value: 255 }, { hue: 255, saturation: 255, value: 255 }).setAnimation(4).setFPS(fps).getCommand());
+    (0, Serial_1.send)(new Animations_1.LedAnimation("ping").addColors({ hue: 255, saturation: 255, value: 255 }, { hue: 255, saturation: 255, value: 255 }).setAnimation(4).setFPS(fps).getCommand(0));
     setTimeout(function () {
         var d = (0, Profiles_1.getCurrent)();
         if (d)
-            (0, Serial_1.send)(d.getCommand());
+            (0, Serial_1.send)(d.getCommand(0));
     }, (256 / fps) * 1000);
 }

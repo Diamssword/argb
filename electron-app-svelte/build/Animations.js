@@ -20,6 +20,10 @@ var LedAnimation = /** @class */ (function () {
         this.save = false;
         this.name = name;
     }
+    LedAnimation.prototype.fromObject = function (obj) {
+        Object.assign(this, obj);
+        return this;
+    };
     LedAnimation.prototype.setFPS = function (fps) {
         this.fps = fps;
         return this;
@@ -64,27 +68,25 @@ var LedAnimation = /** @class */ (function () {
         }
         return res;
     };
-    LedAnimation.prototype.getCommand = function () {
+    LedAnimation.prototype.getCommand = function (index) {
         var cols = "";
         for (var k in this.colors) {
             var col = this.colors[k];
             cols += col.hue + "/" + col.saturation + "/" + col.value + ",";
         }
         cols = cols.substring(0, cols.length - 2);
-        return "/argb a:".concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";").concat(this.save ? "s:1;" : "");
+        return "/argb h:".concat(index, ";a:").concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";").concat(this.save ? "s:1;" : "");
     };
-    LedAnimation.prototype.formJson = function (jsonStr) {
-        var ob = JSON.parse(jsonStr);
-        Object.assign(this, ob);
+    LedAnimation.prototype.formJson = function (jsonObj) {
+        Object.assign(this, jsonObj);
         return this;
-    };
-    LedAnimation.prototype.toJson = function () {
-        return JSON.stringify(this);
     };
     return LedAnimation;
 }());
 exports.LedAnimation = LedAnimation;
 /* commandes:
+    h: int > hardware id, l'orde ou assigner ce hardware |a mettre en premier
+    p: int > led count |a mettre en second | ne pas inclure si aucun hardware n'a changé (evite de recalculer toute les positions de leds)
     a: int > id de l'animation
     f: int > fps
     t: int > timer

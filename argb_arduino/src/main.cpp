@@ -6,167 +6,226 @@
 //#define CLK_PIN   4
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
-#define NUM_LEDS 17
-CRGB leds[NUM_LEDS];
+#define MAX_LEDS 17
+CRGB leds[MAX_LEDS];
 
 #define BRIGHTNESS 255
 
 int MainTimer = 0;
-int MainTimer1 = 0;
-int fps = 100; // nombre de fois ou la boucle d'animation est executé par seconde
-int time = -1; // time m'est la var "shouldUpdate" a true tout les X temps (compteur parallele aux fps)
-void (*modeFN)(void);
-uint8_t hue = 0;         // rotating "base color" used by many of the patterns
-int pos = 0;             // index de la derniere led changée
-boolean reverse = false; // si on devrait tournée 'en arriere'
-boolean reverse1 = false;
-boolean shouldUpdate = false;
 
-CHSV color1 = CHSV(255, 255, 255);
-CHSV color2 = CHSV(125, 255, 255);
-
+struct Hardware
+{
+  uint8_t start = 0;
+  uint8_t end = 1;
+  uint8_t fps = 120;
+  uint8_t pos = 0;
+  uint8_t hue = 0;
+  CHSV color1 = CHSV(255, 255, 255);
+  CHSV color2 = CHSV(255, 255, 255);
+  Hardware(uint8_t start, uint8_t end)
+  {
+    this->start = start;
+    this->end = end;
+  };
+  Hardware()
+  {
+  }
+  bool reverse = false;
+  bool reverse1 = false;
+  void (*modeFN)(Hardware&);
+};
+Hardware hardwares[10];   // we can't have unknown arrays size, so this will be limited a 10 "hardwares" (differents animations on differents parts of the total led strip)
+uint8_t hardwareSize = 1; // so we track the real length with another variable;
 CHSV darken(CHSV color, int brightness)
 {
-
   return CHSV(color.hue, color.s, brightness);
 }
-void IndexChangeReverse()
+void IndexChangeReverse(Hardware& hard)
 {
-  if (reverse)
-    pos--;
+  if (hard.reverse)
+    hard.pos--;
   else
-    pos++;
-  if (pos >= NUM_LEDS)
+    hard.pos++;
+  if (hard.pos >= hard.end)
   {
-    reverse = true;
-    pos = NUM_LEDS - 1;
+    hard.reverse = true;
+    hard.pos = hard.end - 1;
   }
-  else if (pos < 0)
+  else if (hard.pos < 0)
   {
-    reverse = false;
-    pos = 0;
+    hard.reverse = false;
+    hard.pos = 0;
   }
 }
 
-void IndexChange()
+void IndexChange(Hardware& hard)
 {
-  pos++;
-  if (pos >= NUM_LEDS)
+  hard.pos++;
+  if (hard.pos >= hard.end)
   {
-    pos = 0;
+    hard.pos = 0;
   }
 }
-void cylon()
+void cylon(Hardware& hard)
 {
-  IndexChangeReverse();
-  leds[pos] = CHSV(hue++, 255, 255);
+  IndexChangeReverse(hard);
+  leds[hard.pos] = CHSV(hard.hue++, 255, 255);
   FastLED.show();
   // fading
-  for (int i = 0; i < NUM_LEDS; i++)
+  for (int i = 0; i < hard.end; i++)
   {
     leds[i].nscale8(250);
   }
 }
-void pulse()
+void pulse(Hardware& hard)
 {
-  color1.v = 255;
-  color2.v = 255;
-  hue += reverse ? 1 : -1;
-  if (hue > 255)
+  hard.color1.v = 255;
+  hard.color2.v = 255;
+  hard.hue += hard.reverse ? 1 : -1;
+  if (hard.hue > 255)
   {
-    reverse = true;
-    hue--;
+    hard.reverse = true;
+    hard.hue--;
   }
-  else if (hue < 0)
+  else if (hard.hue < 0)
   {
-    reverse = false;
-    hue++;
+    hard.reverse = false;
+    hard.hue++;
   }
-  CRGB t = CRGB(color1);
-  CRGB t1 = CRGB(color2);
-  fill_gradient_RGB(leds, NUM_LEDS, t.fadeToBlackBy(hue), t1.fadeToBlackBy(hue));
+  CRGB t = CRGB(hard.color1);
+  CRGB t1 = CRGB(hard.color2);
+  fill_gradient_RGB(leds, hard.end, t.fadeToBlackBy(hard.hue), t1.fadeToBlackBy(hard.hue));
   FastLED.show();
 }
 
-void rainbow()
+void rainbow(Hardware& hard)
 {
-  hue++;
+  hard.hue = hard.hue + 1;
   // FastLED's built-in rainbow generator
 
-  fill_rainbow(leds, NUM_LEDS, hue, 7);
+  fill_rainbow(leds, hard.end, hard.hue, 7);
   FastLED.show();
 }
-void oddeven()
+void oddeven(Hardware& hard)
 {
-  color1.v = 255;
-  color2.v = 255;
+  hard.color1.v = 255;
+  hard.color2.v = 255;
   FastLED.clear();
 
-  hue += reverse1 ? -1 : +1;
-  if (hue >= 255)
+  hard.hue += hard.reverse1 ? -1 : +1;
+  if (hard.hue >= 255)
   {
-    reverse1 = true;
-    reverse = !reverse;
+    hard.reverse1 = true;
+    hard.reverse = !hard.reverse;
   }
-  if (hue <= 0)
+  if (hard.hue <= 0)
   {
-    reverse1 = false;
+    hard.reverse1 = false;
   }
-  for (int k = (reverse ? 0 : 2); k < NUM_LEDS; k += 4)
+  for (int k = (hard.reverse ? 0 : 2); k < hard.end; k += 4)
   {
 
-    CHSV col = reverse ? color1 : color2;
+    CHSV col = hard.reverse ? hard.color1 : hard.color2;
     leds[k] = col;
-    leds[k] = leds[k].fadeToBlackBy(hue);
+    leds[k] = leds[k].fadeToBlackBy(hard.hue);
   }
 
   // FastLED's built-in rainbow generator
   FastLED.show();
 }
-void setMode(int mode)
+void setMode(int mode, Hardware& hard)
 {
   switch (mode)
   {
   case 1:
-    modeFN = &rainbow;
+    hard.modeFN = &rainbow;
     break;
   case 2:
-    modeFN = &cylon;
+    hard.modeFN = &cylon;
     break;
   case 3:
-    modeFN = &oddeven;
+    hard.modeFN = &oddeven;
     break;
   case 4:
-    hue = 255;
-    modeFN = &pulse;
+    hard.hue = 255;
+    hard.modeFN = &pulse;
     break;
   default:
-    modeFN = &rainbow;
+    hard.modeFN = &rainbow;
     break;
   }
 }
-void readConfig()
+uint8_t getMemPosStart(uint8_t hardware)
 {
-  setMode(EEPROM.read(0));
-  fps = EEPROM.read(1);
-  // time =EEPROM.read(2); max 255> pas d'interet a sauvegarde une valeur en ms (et pas possible de save -1)
-  color1 = CHSV(EEPROM.read(3), EEPROM.read(4), EEPROM.read(5));
-  color2 = CHSV(EEPROM.read(6), EEPROM.read(7), EEPROM.read(8));
+  const int count = 9;
+  const int offset = 1;
+  uint8_t pos = (hardware * count) + offset;
+  if (pos + count >= EEPROM.length())
+    return offset;
+  return pos;
 }
-void saveConfig(int mode)
+void readConfig(uint8_t hardware)
 {
-  EEPROM.write(0, mode);
-  EEPROM.write(1, fps);
-  // EEPROM.write(2,time);
-  EEPROM.write(3, color1.h);
-  EEPROM.write(4, color1.s);
-  EEPROM.write(5, color1.v);
-  EEPROM.write(6, color2.h);
-  EEPROM.write(7, color2.s);
-  EEPROM.write(8, color2.v);
+  uint8_t pos = getMemPosStart(hardware);
+  Hardware& h = hardwares[hardware];
+  h.start=EEPROM.read(pos);
+  h.end=EEPROM.read(pos+1);
+  setMode(EEPROM.read(pos+2), h);
+  h.fps = EEPROM.read(pos + 3);
+  // time =EEPROM.read(2); max 255> pas d'interet a sauvegarde une valeur en ms (et pas possible de save -1)
+  h.color1 = CHSV(EEPROM.read(pos + 4), EEPROM.read(pos + 5), EEPROM.read(pos + 6));
+  h.color2 = CHSV(EEPROM.read(pos + 7), EEPROM.read(pos + 8), EEPROM.read(pos + 9));
+}
+void saveConfig(uint8_t mode, uint8_t hardware)
+{
+  Hardware& h = hardwares[hardware];
+  uint8_t pos = getMemPosStart(hardware);
+  EEPROM.write(pos, h.start);
+  EEPROM.write(pos + 1, h.end);
+  EEPROM.write(pos + 2, mode);
+  EEPROM.write(pos + 3, h.fps);
+  EEPROM.write(pos + 4, h.color1.h);
+  EEPROM.write(pos + 5, h.color1.s);
+  EEPROM.write(pos + 6, h.color1.v);
+  EEPROM.write(pos + 7, h.color2.h);
+  EEPROM.write(pos + 8, h.color2.s);
+  EEPROM.write(pos + 9, h.color2.v);
+}
+
+void receiveHardCmd(String s)
+{
+  hardwareSize = 0;
+  while (s.length() > 1)
+  {
+    int pos = s.indexOf(";");
+    if (pos >= 1)
+    {
+      String content = s.substring(0, pos);
+      uint8_t lastrIndex = 0;
+      if (hardwareSize - 1 >= 0)
+      {
+        lastrIndex = hardwares[hardwareSize - 1].end + 1;
+      }
+      hardwares[hardwareSize].start=lastrIndex;
+      hardwares[hardwareSize].pos=0;
+      hardwares[hardwareSize].end=lastrIndex+content.toInt();
+      saveConfig(0,hardwareSize);
+      hardwareSize++;
+  
+    }
+    EEPROM.write(0,hardwareSize);
+    if(pos+1 >= s.length())
+      break;
+    s = s.substring(pos + 1);
+  }
+  fadeToBlackBy(leds,MAX_LEDS,255);
+
+  // TOD definir tout les hardwares d'un coup ici du genre : /hrgb 17;12;3 pour un hard de 17, de 12 puis de 3;
 }
 void receiveCommand(String s)
 {
+  Hardware& hard = hardwares[0];
+  int hardPos = 0;
   int mode = 0;
   while (s.length() > 0)
   {
@@ -180,6 +239,7 @@ void receiveCommand(String s)
     if (pos1 > -1)
     {
       String content = s.substring(pos + 1, pos1);
+
       if (cmd == 'c')
       {
         boolean shouldExit = false;
@@ -208,9 +268,9 @@ void receiveCommand(String s)
               colo.v = i1;
           }
           if (col2)
-            color2 = colo;
+            hard.color2 = colo;
           else
-            color1 = colo;
+            hard.color1 = colo;
 
           content = content.substring(pos2 + 1);
           col2 = true;
@@ -221,17 +281,30 @@ void receiveCommand(String s)
       else
       {
         int m = content.toInt();
-        if (cmd == 'a')
+        if (cmd == 'h')
+        {
+          hard = hardwares[m];
+          hardPos = m;
+          if (m >= hardwareSize)
+          {
+            hard = hardwares[hardwareSize];
+            hardPos = hardwareSize;
+          }
+        }
+        else if (cmd == 'a')
         {
           mode = m;
-          setMode(mode);
+          setMode(mode, hard);
         }
         else if (cmd == 'f')
-          fps = m;
-        else if (cmd == 't')
-          time = m;
+        {
+          hard.fps = m;
+        }
         else if (cmd == 's')
-          saveConfig(mode);
+        {
+          saveConfig(mode, hardPos);
+          EEPROM.write(0, hardwareSize);
+        }
       }
     }
     if (pos <= -1 || pos1 <= -1)
@@ -239,18 +312,26 @@ void receiveCommand(String s)
     s = s.substring(pos1 + 1);
   }
 }
+
 void setup()
 {
   Serial.begin(9600);
   delay(3000); // 3 second delay for recovery
   // tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS).setCorrection(TypicalLEDStrip);
 
   // set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
-  modeFN = &rainbow;
-  if (EEPROM.read(0) != 255)
-    readConfig();
+  hardwares[0] = Hardware(0, MAX_LEDS);
+  hardwares[0].modeFN = &rainbow;
+  if (EEPROM.read(0) != 255) // check if eeprom have been written
+  {
+    hardwareSize = EEPROM.read(0);
+    for (uint8_t i = 0; i < hardwareSize; i++)
+    {
+      readConfig(i);
+    }
+  } 
 }
 String serialMsg = "";
 void loop()
@@ -274,21 +355,27 @@ void loop()
     {
       receiveCommand(serialMsg.substring(6));
     }
+     else if (serialMsg.startsWith("/hrgb "))
+    {
+      receiveHardCmd(serialMsg.substring(6));
+    }
     serialMsg = "";
   }
   delay(1);
+  for (uint8_t i = 0; i < hardwareSize; i++)
+  {
+    Hardware& h = hardwares[i];
+    if (h.modeFN != NULL)
+    {
+      float f = 1000 / h.fps;
+      float d = ((float)MainTimer) / f;
+      if (d == floor(d))
+      {
+        h.modeFN(h);
+      }
+    }
+  }
   MainTimer++;
-  MainTimer1++;
-  if (MainTimer >= 1000 / fps)
-  {
-    modeFN();
-    MainTimer = 0;
-  }
-  if (time > -1 && MainTimer1 >= time)
-  {
-    shouldUpdate = true;
-    MainTimer1 = 0;
-  }
 
   // do some periodic updates
 }

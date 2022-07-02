@@ -13,7 +13,6 @@ async function listSerialPorts() {
     } else {
       document.getElementById('error').textContent = ''
     }
-    console.log('ports', ports);
 
     if (ports.length === 0) {
       document.getElementById('error').textContent = 'No ports discovered'

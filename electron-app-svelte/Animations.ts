@@ -9,7 +9,11 @@ export class LedAnimation {
     constructor(name:string) {
       this.name=name;  
     }
-
+    fromObject(obj:any)
+    {
+        Object.assign(this,obj)
+        return this;
+    }
     setFPS(fps:number)
     {
         this.fps=fps;
@@ -56,7 +60,7 @@ export class LedAnimation {
         }
         return res;
     }
-    getCommand()
+    getCommand(index:number)
     {
         var cols="";
         for(var k in this.colors)
@@ -65,21 +69,20 @@ export class LedAnimation {
             cols+=col.hue+"/"+col.saturation+"/"+col.value+",";
         }
         cols=cols.substring(0,cols.length-2);
-        return `/argb a:${this.animation};f:${this.fps};t:${this.timer};c:${cols};${this.save?"s:1;":""}`
+        return `/argb h:${index};a:${this.animation};f:${this.fps};t:${this.timer};c:${cols};${this.save?"s:1;":""}`
     }
-    formJson(jsonStr:string )
+    formJson(jsonObj:any )
     {
-            var ob=JSON.parse(jsonStr)   ;
-            Object.assign(this,ob);
+            
+            Object.assign(this,jsonObj);
             return this;
     }
-    toJson()
-    {
-        return JSON.stringify(this);
-    }
+ 
 }
 
 /* commandes:
+    h: int > hardware id, l'orde ou assigner ce hardware |a mettre en premier
+    p: int > led count |a mettre en second | ne pas inclure si aucun hardware n'a changé (evite de recalculer toute les positions de leds)
     a: int > id de l'animation
     f: int > fps
     t: int > timer

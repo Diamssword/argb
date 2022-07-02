@@ -1,40 +1,50 @@
 <script>
     import { TextInput, NumberInput } from "@svelteuidev/core";
-    import { TYPES, Hadware } from "../../build/Hardwares";
+    import { TYPES, Hardware } from "../../build/Hardwares";
     import FanLed from "../components/led_fan.svelte";
     import StripLed from "../components/led_strip.svelte";
     import LedAnimator from "./led_animator.svelte";
-    var ledCount = 20;
-    $:if(ledCount<1|| isNaN(ledCount))
-    {
-        let d = TYPES[type];
-        if(d)
-        ledCount=d.ledcount
+    export var hardware ;
+    var ledCount = hardware.ledcount;
+    $: if (ledCount != undefined) {
+        if (ledCount < 1 || isNaN(ledCount)) {
+            let d = hardware.type;
+           
+            if (d) 
+            {
+                hardware.ledcount = d.ledcount;
+                ledCount=d.ledcount;
+                
+            }
+        } else
+         hardware.ledcount = ledCount;
     }
-        
-    var type = "fan";
     var displays = {
-        fan: FanLed,
+        round: FanLed,
         strip: StripLed,
     };
 </script>
 
 <div class="row">
     <div>
-        <TextInput description="Nom" />
+        <TextInput description="Nom" bind:value={hardware.name} />
         <select
             on:change={(e) => {
-                console.log(e.target.value);
-                type = e.target.value;
-            }}>
+                hardware.simulation = e.target.value;
+                hardware= hardware;
+            }}
+        >
             {#each Object.keys(TYPES) as comp}
-                <option value={comp}>{TYPES[comp].name}</option>
+                <option value={TYPES[comp].simulation}>{TYPES[comp].name}</option>
             {/each}
         </select>
         <NumberInput bind:value={ledCount} />
     </div>
     <div>
-        <LedAnimator comp={displays[type]} nbLeds={ledCount} />
+        <LedAnimator
+            comps={[displays[hardware.simulation]]}
+            nbLeds={ledCount}
+        />
     </div>
 </div>
 

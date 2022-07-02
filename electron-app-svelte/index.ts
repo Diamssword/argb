@@ -27,6 +27,6 @@ app.on("ready", () => {
   })
   SerialInit(mainWindow);
   EventInit();
-  ProfileInit();
+  ProfileInit(mainWindow);
   
 });

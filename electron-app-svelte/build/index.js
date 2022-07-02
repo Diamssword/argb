@@ -29,5 +29,5 @@ electron_1.app.on("ready", function () {
     });
     (0, Serial_1.init)(mainWindow);
     (0, EventWatcher_1.init)();
-    (0, Profiles_1.init)();
+    (0, Profiles_1.init)(mainWindow);
 });

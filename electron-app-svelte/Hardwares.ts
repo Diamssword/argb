@@ -1,50 +1,71 @@
 export class Hardware {
     name:string
+    id:number
     type:Hardware|undefined
     ledcount:number
-    animation:Animation
-    constructor(name:string,ledcount:number,type?:Hardware,animation?:Animation)
+    simulation:Simulation
+    linkedBefore: boolean=false;
+    constructor(id:number,name:string,ledcount:number,type?:Hardware,simulation?:Simulation)
     {
+        this.id=id;
         this.name=name;
+        if(ledcount<=0 && type)
+        this.ledcount=type.ledcount;
+        else
         this.ledcount=ledcount;
         this.type=type;
-        this.animation= type? type.animation:(animation?animation:Animation.round);
-
+        this.simulation= type? type.simulation:(simulation?simulation:Simulation.round);
     }
+
 }
-export enum Animation{
-    'round',
-    'strip'
+export enum Simulation{
+    'round'='round',
+    'strip'='strip',
 }
-export type HarwarePart={
+export type HardwarePart={
     hardware:Hardware,
     from :number,
     to : number
 }
 export class VirtualHardware{
     name:string
-    composition:HarwarePart[]=[]
+    composition:Hardware[]=[]
     constructor (name:string)
     {
     this.name=name;
     }
-    addHardware(hardware:Hardware,from?:number,to?:number)
+    fromObject(obj:any)
     {
-        if(!from)
-        {
-            from = 0;
-        }
-        if(!to)
-        {
-            to = hardware.ledcount-1;
-        }
-        this.composition.push({hardware:hardware,from:from,to:to})
+        Object.assign(this,obj)
+        return this;
     }
- 
+    addHardware(hardware:Hardware)
+    {
+      
+        this.composition.push(hardware)
+    }
+    getLastPos()
+    {
+        let res=0;
+        for(let k in this.composition)
+        {
+            res+=this.composition[k].ledcount;
+        }
+        return res;
+    }
+}
+export function getCommand(hardlist:VirtualHardware[])
+{
+    let res= "/hrgb ";
+    for(let d in hardlist)
+    {
+        res+= hardlist[d].getLastPos()+";"
+    }
+    return res;
 }
 
 
 export var TYPES ={
-    fan:new Hardware("fan",17),
-    strip:new Hardware("strip",20)
+    fan:new Hardware(0,"fan",17,undefined,Simulation.round),
+    strip:new Hardware(0,"strip",20,undefined,Simulation.strip)
 }

@@ -1,39 +1,57 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TYPES = exports.VirtualHardware = exports.Animation = exports.Hardware = void 0;
+exports.TYPES = exports.getCommand = exports.VirtualHardware = exports.Simulation = exports.Hardware = void 0;
 var Hardware = /** @class */ (function () {
-    function Hardware(name, ledcount, type, animation) {
+    function Hardware(id, name, ledcount, type, simulation) {
+        this.linkedBefore = false;
+        this.id = id;
         this.name = name;
-        this.ledcount = ledcount;
+        if (ledcount <= 0 && type)
+            this.ledcount = type.ledcount;
+        else
+            this.ledcount = ledcount;
         this.type = type;
-        this.animation = type ? type.animation : (animation ? animation : Animation.round);
+        this.simulation = type ? type.simulation : (simulation ? simulation : Simulation.round);
     }
     return Hardware;
 }());
 exports.Hardware = Hardware;
-var Animation;
-(function (Animation) {
-    Animation[Animation["round"] = 0] = "round";
-    Animation[Animation["strip"] = 1] = "strip";
-})(Animation = exports.Animation || (exports.Animation = {}));
+var Simulation;
+(function (Simulation) {
+    Simulation["round"] = "round";
+    Simulation["strip"] = "strip";
+})(Simulation = exports.Simulation || (exports.Simulation = {}));
 var VirtualHardware = /** @class */ (function () {
     function VirtualHardware(name) {
         this.composition = [];
         this.name = name;
     }
-    VirtualHardware.prototype.addHardware = function (hardware, from, to) {
-        if (!from) {
-            from = 0;
+    VirtualHardware.prototype.fromObject = function (obj) {
+        Object.assign(this, obj);
+        return this;
+    };
+    VirtualHardware.prototype.addHardware = function (hardware) {
+        this.composition.push(hardware);
+    };
+    VirtualHardware.prototype.getLastPos = function () {
+        var res = 0;
+        for (var k in this.composition) {
+            res += this.composition[k].ledcount;
         }
-        if (!to) {
-            to = hardware.ledcount - 1;
-        }
-        this.composition.push({ hardware: hardware, from: from, to: to });
+        return res;
     };
     return VirtualHardware;
 }());
 exports.VirtualHardware = VirtualHardware;
+function getCommand(hardlist) {
+    var res = "/hrgb ";
+    for (var d in hardlist) {
+        res += hardlist[d].getLastPos() + ";";
+    }
+    return res;
+}
+exports.getCommand = getCommand;
 exports.TYPES = {
-    fan: new Hardware("fan", 17),
-    strip: new Hardware("strip", 20)
+    fan: new Hardware(0, "fan", 17, undefined, Simulation.round),
+    strip: new Hardware(0, "strip", 20, undefined, Simulation.strip)
 };

@@ -16,11 +16,11 @@ function onEvent(data:any,event:String )
     }
     if(fps<128)
         fps=128;
-    send(new LedAnimation("ping").addColors({hue:255,saturation:255,value:255},{hue:255,saturation:255,value:255}).setAnimation(4).setFPS(fps).getCommand());
+    send(new LedAnimation("ping").addColors({hue:255,saturation:255,value:255},{hue:255,saturation:255,value:255}).setAnimation(4).setFPS(fps).getCommand(0));
     setTimeout(()=>{
         var d = getCurrent();
         if(d)
-            send(d.getCommand());
+            send(d.getCommand(0));
     },(256/fps)*1000)
 
 }

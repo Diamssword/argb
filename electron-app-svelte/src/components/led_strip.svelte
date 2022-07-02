@@ -32,7 +32,7 @@
 </script>
 
 <div class="leds">
-    <div class="strip"  style="--m: {leds.length}; --tan: 0.41">
+    <div class="strip"  >
         
         {#each leds as _,i}
         

@@ -12,7 +12,10 @@ function init(window) {
         store.set("hardware", args);
     });
     electron_1.ipcMain.on("hardware.request", function (ev, args) {
-        ev.reply("hardware.request", store.get("hardware"));
+        var d = store.get("hardware");
+        if (!d)
+            d = [];
+        ev.reply("hardware.request", d);
     });
     electron_1.ipcMain.on("vhardware.request", function (ev, args) {
         ev.reply("vhardware.request", getHardwareList());

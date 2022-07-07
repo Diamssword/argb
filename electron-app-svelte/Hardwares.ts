@@ -28,11 +28,14 @@ export type HardwarePart={
     to : number
 }
 export class VirtualHardware{
+    port:string
+    enabled:boolean=true
     name:string
     composition:Hardware[]=[]
-    constructor (name:string)
+    constructor (name:string,port:string)
     {
     this.name=name;
+    this.port=port;
     }
     fromObject(obj:any)
     {

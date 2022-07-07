@@ -57,4 +57,9 @@ export class StorageInstance {
         this.storage[key]=value;
         this.save();
     }
+    delete(key:string)
+    {
+        delete this.storage[key];
+        this.save();
+    }
 }

@@ -22,9 +22,11 @@ var Simulation;
     Simulation["strip"] = "strip";
 })(Simulation = exports.Simulation || (exports.Simulation = {}));
 var VirtualHardware = /** @class */ (function () {
-    function VirtualHardware(name) {
+    function VirtualHardware(name, port) {
+        this.enabled = true;
         this.composition = [];
         this.name = name;
+        this.port = port;
     }
     VirtualHardware.prototype.fromObject = function (obj) {
         Object.assign(this, obj);

@@ -50,6 +50,10 @@ var StorageInstance = /** @class */ (function () {
         this.storage[key] = value;
         this.save();
     };
+    StorageInstance.prototype.delete = function (key) {
+        delete this.storage[key];
+        this.save();
+    };
     return StorageInstance;
 }());
 exports.StorageInstance = StorageInstance;

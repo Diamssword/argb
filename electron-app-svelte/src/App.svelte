@@ -30,7 +30,10 @@ hidden={!opened}
 width={{ base: 300 }}
 override={{ p: 'xsdPX' }}
 >
-
+Profile: 
+<select>
+	<option>+new</option>
+</select>
 <Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="general"}}>General</Button>
 <Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="animator"}}>Animator</Button>
 <Button variant="outline" color="yellow" radius="xl" size="md" ripple on:click={()=>{currentPage="hardware"}}>Hardware</Button>

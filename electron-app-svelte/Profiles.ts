@@ -3,21 +3,62 @@ import { Hardware ,VirtualHardware} from './Hardwares';
 import {StorageInstance} from './storage'
 import {BrowserWindow,ipcMain,IpcMain} from 'electron'
 var store= new StorageInstance("temp","temp");
+var hardwareStore= new StorageInstance("temp","temp");
 export function init(window:BrowserWindow)
 {
  store= new StorageInstance("profile");
+ hardwareStore = new StorageInstance("hardwares")
  
 ipcMain.on("hardware.save",(ev,args)=>{
-   store.set("hardware",args);
+    hardwareStore.set(args.name,args.hard)
 })
 ipcMain.on("hardware.request",(ev,args)=>{
-    var d= store.get("hardware");
+    var d= hardwareStore.get(args);
     if(!d)
     d=[];
         ev.reply("hardware.request",d);
  })
+ ipcMain.on("hardware.profiles",(ev,args)=>{
+    var d= hardwareStore.getAll()
+    if(!d)
+    d={};
+        ev.reply("hardware.profiles", Object.keys(d));
+ })
+ ipcMain.on("hardware.editProfile",(ev,args)=>{
+    let pr = args.name;
+    let op = args.operation
+    if(op =="new")
+    {
+        
+        let i=1;
+        while(hardwareStore.get(pr+""+i))
+        {
+        i++
+        }   
+        hardwareStore.set(pr+""+i,[]);   
+        ev.reply("hardware.editProfile",{operation:"new",name:pr+""+i});  
+    }
+    else if(op == "rename")
+    {
+        let a=hardwareStore.get(pr);
+        let b=hardwareStore.get(args.rename);
+        if(a && !b)
+        {
+            hardwareStore.delete(pr);
+            hardwareStore.set(args.rename,a);
+        }
+        else
+        {
+            ev.reply("hardware.editProfile",{operation:"rename",error:"CANT"});  
+        }
+    }
+    else if(op == "delete")
+    {
+        hardwareStore.delete(pr);
+    }
+ })
  ipcMain.on("vhardware.request",(ev,args)=>{
-        ev.reply("vhardware.request",getHardwareList());
+        ev.reply("vhardware.request",/*getHardwareList()*/);
  })
  ipcMain.on("animation.save",(ev,args)=>{
     let anim:any=store.get("animations");
@@ -25,7 +66,6 @@ ipcMain.on("hardware.request",(ev,args)=>{
         anim={};
         anim[args.hardware]=args.anim;
         store.set("animations",anim);
-        store.save();
  })
  ipcMain.on("animations.request",(ev,args)=>{
     let d=store.get("animations")
@@ -37,7 +77,7 @@ ipcMain.on("hardware.request",(ev,args)=>{
   })
 
 }
-export function getHardwareList()
+/*export function getHardwareList()
 {
 var d : unknown =store.get("hardware");
 
@@ -68,7 +108,7 @@ if(d != null)
 }
     return res;
 }
-
+*/
 
 export function getCurrent()
 {
@@ -78,5 +118,4 @@ export function getCurrent()
 export function setCurrent(animation:LedAnimation)
 {
     store.set("current",animation);
-    store.save();
 }

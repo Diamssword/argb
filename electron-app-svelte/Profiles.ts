@@ -11,7 +11,10 @@ ipcMain.on("hardware.save",(ev,args)=>{
    store.set("hardware",args);
 })
 ipcMain.on("hardware.request",(ev,args)=>{
-        ev.reply("hardware.request",store.get("hardware"));
+    var d= store.get("hardware");
+    if(!d)
+    d=[];
+        ev.reply("hardware.request",d);
  })
  ipcMain.on("vhardware.request",(ev,args)=>{
         ev.reply("vhardware.request",getHardwareList());

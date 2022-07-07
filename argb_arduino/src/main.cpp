@@ -1,15 +1,19 @@
 #include <Arduino.h>
 #include <FastLED.h>
 #include <EEPROM.h>
-// examples: https://github.com/FastLED/FastLED/blob/master/examples/ColorTemperature/ColorTemperature.ino
-#define DATA_PIN 3
-//#define CLK_PIN   4
-#define LED_TYPE WS2811
-#define COLOR_ORDER GRB
-#define MAX_LEDS 17
-CRGB leds[MAX_LEDS];
 
+// pin for the data cable
+#define DATA_PIN 3
+
+// change your led type if needed
+#define LED_TYPE WS2811
+// set the total lenght of your leds here, you can also put a higher value but it might take more memory on the arduino
+#define MAX_LEDS 17
+// you can start at a lower brightness here (0-255)
 #define BRIGHTNESS 255
+
+#define COLOR_ORDER GRB
+CRGB leds[MAX_LEDS];
 
 int MainTimer = 0;
 
@@ -32,15 +36,18 @@ struct Hardware
   }
   bool reverse = false;
   bool reverse1 = false;
-  void (*modeFN)(Hardware&);
+  void (*modeFN)(Hardware &);
 };
 Hardware hardwares[10];   // we can't have unknown arrays size, so this will be limited a 10 "hardwares" (differents animations on differents parts of the total led strip)
 uint8_t hardwareSize = 1; // so we track the real length with another variable;
+
+// darken a color;
 CHSV darken(CHSV color, int brightness)
 {
   return CHSV(color.hue, color.s, brightness);
 }
-void IndexChangeReverse(Hardware& hard)
+
+void IndexChangeReverse(Hardware &hard)
 {
   if (hard.reverse)
     hard.pos--;
@@ -54,30 +61,30 @@ void IndexChangeReverse(Hardware& hard)
   else if (hard.pos < 0)
   {
     hard.reverse = false;
-    hard.pos = 0;
+    hard.pos = hard.start;
   }
 }
 
-void IndexChange(Hardware& hard)
+void IndexChange(Hardware &hard)
 {
   hard.pos++;
   if (hard.pos >= hard.end)
   {
-    hard.pos = 0;
+    hard.pos = hard.start;
   }
 }
-void cylon(Hardware& hard)
+void cylon(Hardware &hard)
 {
   IndexChangeReverse(hard);
   leds[hard.pos] = CHSV(hard.hue++, 255, 255);
   FastLED.show();
   // fading
-  for (int i = 0; i < hard.end; i++)
+  for (int i = hard.start; i < hard.end; i++)
   {
     leds[i].nscale8(250);
   }
 }
-void pulse(Hardware& hard)
+void pulse(Hardware &hard)
 {
   hard.color1.v = 255;
   hard.color2.v = 255;
@@ -92,21 +99,29 @@ void pulse(Hardware& hard)
     hard.reverse = false;
     hard.hue++;
   }
-  CRGB t = CRGB(hard.color1);
-  CRGB t1 = CRGB(hard.color2);
-  fill_gradient_RGB(leds, hard.end, t.fadeToBlackBy(hard.hue), t1.fadeToBlackBy(hard.hue));
+  // CRGB t = CRGB(hard.color1);
+  // CRGB t1 = CRGB(hard.color2);
+
+  fill_gradient(leds, hard.start, darken(hard.color1, 255 - hard.hue), hard.end, darken(hard.color2, 255 - hard.hue));
+  // fill_gradient_RGB(leds, hard.start,hard.end, t.fadeToBlackBy(hard.hue), t1.fadeToBlackBy(hard.hue));
   FastLED.show();
 }
 
-void rainbow(Hardware& hard)
+void rainbow(Hardware &hard)
 {
   hard.hue = hard.hue + 1;
-  // FastLED's built-in rainbow generator
-
-  fill_rainbow(leds, hard.end, hard.hue, 7);
+  CHSV hsv;
+  hsv.hue = hard.hue;
+  hsv.val = 255;
+  hsv.sat = 240;
+  for (int i = hard.start; i <= hard.end; ++i)
+  {
+    leds[i] = hsv;
+    hsv.hue += 7;
+  }
   FastLED.show();
 }
-void oddeven(Hardware& hard)
+void oddeven(Hardware &hard)
 {
   hard.color1.v = 255;
   hard.color2.v = 255;
@@ -122,7 +137,7 @@ void oddeven(Hardware& hard)
   {
     hard.reverse1 = false;
   }
-  for (int k = (hard.reverse ? 0 : 2); k < hard.end; k += 4)
+  for (int k = (hard.reverse ? hard.start : hard.start+2); k < hard.end; k += 4)
   {
 
     CHSV col = hard.reverse ? hard.color1 : hard.color2;
@@ -133,7 +148,7 @@ void oddeven(Hardware& hard)
   // FastLED's built-in rainbow generator
   FastLED.show();
 }
-void setMode(int mode, Hardware& hard)
+void setMode(int mode, Hardware &hard)
 {
   switch (mode)
   {
@@ -167,10 +182,10 @@ uint8_t getMemPosStart(uint8_t hardware)
 void readConfig(uint8_t hardware)
 {
   uint8_t pos = getMemPosStart(hardware);
-  Hardware& h = hardwares[hardware];
-  h.start=EEPROM.read(pos);
-  h.end=EEPROM.read(pos+1);
-  setMode(EEPROM.read(pos+2), h);
+  Hardware &h = hardwares[hardware];
+  h.start = EEPROM.read(pos);
+  h.end = EEPROM.read(pos + 1);
+  setMode(EEPROM.read(pos + 2), h);
   h.fps = EEPROM.read(pos + 3);
   // time =EEPROM.read(2); max 255> pas d'interet a sauvegarde une valeur en ms (et pas possible de save -1)
   h.color1 = CHSV(EEPROM.read(pos + 4), EEPROM.read(pos + 5), EEPROM.read(pos + 6));
@@ -178,7 +193,7 @@ void readConfig(uint8_t hardware)
 }
 void saveConfig(uint8_t mode, uint8_t hardware)
 {
-  Hardware& h = hardwares[hardware];
+  Hardware &h = hardwares[hardware];
   uint8_t pos = getMemPosStart(hardware);
   EEPROM.write(pos, h.start);
   EEPROM.write(pos + 1, h.end);
@@ -206,25 +221,24 @@ void receiveHardCmd(String s)
       {
         lastrIndex = hardwares[hardwareSize - 1].end + 1;
       }
-      hardwares[hardwareSize].start=lastrIndex;
-      hardwares[hardwareSize].pos=0;
-      hardwares[hardwareSize].end=lastrIndex+content.toInt();
-      saveConfig(0,hardwareSize);
+      hardwares[hardwareSize].start = lastrIndex;
+      hardwares[hardwareSize].pos = 0;
+      hardwares[hardwareSize].end = lastrIndex + content.toInt();
+      saveConfig(0, hardwareSize);
       hardwareSize++;
-  
     }
-    EEPROM.write(0,hardwareSize);
-    if(pos+1 >= s.length())
+    EEPROM.write(0, hardwareSize);
+    if (pos + 1 >= s.length())
       break;
     s = s.substring(pos + 1);
   }
-  fadeToBlackBy(leds,MAX_LEDS,255);
+  fadeToBlackBy(leds, MAX_LEDS, 255);
 
   // TOD definir tout les hardwares d'un coup ici du genre : /hrgb 17;12;3 pour un hard de 17, de 12 puis de 3;
 }
 void receiveCommand(String s)
 {
-  Hardware& hard = hardwares[0];
+  Hardware &hard = hardwares[0];
   int hardPos = 0;
   int mode = 0;
   while (s.length() > 0)
@@ -331,7 +345,7 @@ void setup()
     {
       readConfig(i);
     }
-  } 
+  }
 }
 String serialMsg = "";
 void loop()
@@ -355,7 +369,7 @@ void loop()
     {
       receiveCommand(serialMsg.substring(6));
     }
-     else if (serialMsg.startsWith("/hrgb "))
+    else if (serialMsg.startsWith("/hrgb "))
     {
       receiveHardCmd(serialMsg.substring(6));
     }
@@ -364,13 +378,14 @@ void loop()
   delay(1);
   for (uint8_t i = 0; i < hardwareSize; i++)
   {
-    Hardware& h = hardwares[i];
+    Hardware &h = hardwares[i];
     if (h.modeFN != NULL)
     {
       float f = 1000 / h.fps;
       float d = ((float)MainTimer) / f;
-      if (d == floor(d))
+      if (d == int(d))
       {
+      
         h.modeFN(h);
       }
     }

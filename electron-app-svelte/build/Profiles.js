@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setCurrent = exports.getCurrent = exports.init = void 0;
+exports.setCurrent = exports.getCurrent = exports.getVHardwareList = exports.init = void 0;
 var Animations_1 = require("./Animations");
+var Hardwares_1 = require("./Hardwares");
 var storage_1 = require("./storage");
 var electron_1 = require("electron");
 var store = new storage_1.StorageInstance("temp", "temp");
@@ -10,7 +11,7 @@ function init(window) {
     store = new storage_1.StorageInstance("profile");
     hardwareStore = new storage_1.StorageInstance("hardwares");
     electron_1.ipcMain.on("hardware.save", function (ev, args) {
-        hardwareStore.set(args.name, args.hard);
+        hardwareStore.set(args.name, getVHardwareList(args.port, args.hard));
     });
     electron_1.ipcMain.on("hardware.request", function (ev, args) {
         var d = hardwareStore.get(args);
@@ -41,6 +42,7 @@ function init(window) {
             if (a && !b) {
                 hardwareStore.delete(pr);
                 hardwareStore.set(args.rename, a);
+                ev.reply("hardware.editProfile", { operation: "rename", from: pr, to: args.rename });
             }
             else {
                 ev.reply("hardware.editProfile", { operation: "rename", error: "CANT" });
@@ -51,7 +53,7 @@ function init(window) {
         }
     });
     electron_1.ipcMain.on("vhardware.request", function (ev, args) {
-        ev.reply("vhardware.request");
+        ev.reply("vhardware.request", getVHardwareList(args.port, args.hard));
     });
     electron_1.ipcMain.on("animation.save", function (ev, args) {
         var anim = store.get("animations");
@@ -69,38 +71,29 @@ function init(window) {
     });
 }
 exports.init = init;
-/*export function getHardwareList()
-{
-var d : unknown =store.get("hardware");
-
-let res:VirtualHardware[]= [] ;
-if(d != null)
-{
-    let h = d as Hardware[];
-    var lastIndex=-1;
-    for(var k=0;k< h.length;k++)
-    {
-        if(h[k].linkedBefore==true)
-        {
-            if(!res[lastIndex])
-            {
-            res[lastIndex]= new VirtualHardware(h[k].name);
+function getVHardwareList(port, hards) {
+    var d = hards;
+    var res = [];
+    if (d != null) {
+        var h = d;
+        var lastIndex = -1;
+        for (var k = 0; k < h.length; k++) {
+            if (h[k].linkedBefore == true) {
+                if (!res[lastIndex]) {
+                    res[lastIndex] = new Hardwares_1.VirtualHardware(h[k].name, port);
+                }
+                res[lastIndex].addHardware(h[k]);
             }
-            res[lastIndex].addHardware(h[k])
+            else {
+                lastIndex++;
+                res[lastIndex] = new Hardwares_1.VirtualHardware(h[k].name, port);
+                res[lastIndex].addHardware(h[k]);
+            }
         }
-        else
-        {
-            lastIndex++;
-            res[lastIndex] = new VirtualHardware(h[k].name);
-            res[lastIndex].addHardware(h[k]);
-           
-        }
-    
     }
-}
     return res;
 }
-*/
+exports.getVHardwareList = getVHardwareList;
 function getCurrent() {
     var str = store.get("current");
     return new Animations_1.LedAnimation("d").formJson(str);

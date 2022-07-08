@@ -7,7 +7,7 @@
     import {VirtualHardware} from "../../build/Hardwares"
     var hardwares = [];
     var animations={};
-    window.send("vhardware.request")
+    //window.send("vhardware.request")
     window.receive("vhardware.request",(res)=>{
         
         fillAnimations(res)
@@ -34,7 +34,7 @@
     function sendTo(hard,pos)
     {
         
-       console.log(animations[hard.name].setSave(true).getCommand(pos))
+   
     window.send("Serial.send",animations[hard.name].setSave(true).getCommand(pos));
     }
     window.receive("Serial.receive",(res)=>{

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "main": "build/index.js",
+  "prettier":{
+    "svelteAllowShorthand": false
+  },
   "scripts": {
     "build": "tsc && rollup -c",
     "dev": "tsc && rollup -c -w",

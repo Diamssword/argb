@@ -10,7 +10,7 @@ export function init(window:BrowserWindow)
  hardwareStore = new StorageInstance("hardwares")
  
 ipcMain.on("hardware.save",(ev,args)=>{
-    hardwareStore.set(args.name,args.hard)
+    hardwareStore.set(args.name,getVHardwareList(args.port,args.hard))
 })
 ipcMain.on("hardware.request",(ev,args)=>{
     var d= hardwareStore.get(args);
@@ -46,6 +46,7 @@ ipcMain.on("hardware.request",(ev,args)=>{
         {
             hardwareStore.delete(pr);
             hardwareStore.set(args.rename,a);
+            ev.reply("hardware.editProfile",{operation:"rename",from:pr,to:args.rename});  
         }
         else
         {
@@ -58,7 +59,7 @@ ipcMain.on("hardware.request",(ev,args)=>{
     }
  })
  ipcMain.on("vhardware.request",(ev,args)=>{
-        ev.reply("vhardware.request",/*getHardwareList()*/);
+        ev.reply("vhardware.request",getVHardwareList(args.port,args.hard));
  })
  ipcMain.on("animation.save",(ev,args)=>{
     let anim:any=store.get("animations");
@@ -77,9 +78,9 @@ ipcMain.on("hardware.request",(ev,args)=>{
   })
 
 }
-/*export function getHardwareList()
+export function getVHardwareList(port:string,hards:Hardware[])
 {
-var d : unknown =store.get("hardware");
+var d = hards;
 
 let res:VirtualHardware[]= [] ;
 if(d != null)
@@ -92,14 +93,14 @@ if(d != null)
         {
             if(!res[lastIndex])
             {
-            res[lastIndex]= new VirtualHardware(h[k].name);
+            res[lastIndex]= new VirtualHardware(h[k].name,port);
             }
             res[lastIndex].addHardware(h[k])
         }
         else
         { 
             lastIndex++;
-            res[lastIndex] = new VirtualHardware(h[k].name);
+            res[lastIndex] = new VirtualHardware(h[k].name,port);
             res[lastIndex].addHardware(h[k]);
            
         }
@@ -108,7 +109,7 @@ if(d != null)
 }
     return res;
 }
-*/
+
 
 export function getCurrent()
 {

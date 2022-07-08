@@ -1,11 +1,13 @@
 <script>
     import { TextInput, NumberInput } from "@svelteuidev/core";
     import { TYPES, Hardware } from "../../build/Hardwares";
+import { LedAnimation } from "../../build/Animations";
     import FanLed from "../components/led_fan.svelte";
     import StripLed from "../components/led_strip.svelte";
     import LedAnimator from "./led_animator.svelte";
     export var hardware ;
     var ledCount = hardware.ledcount;
+    export var animation= new LedAnimation("test").setAnimation(0).setFPS(60);
     $: if (ledCount != undefined) {
         if (ledCount < 1 || isNaN(ledCount)) {
             let d = hardware.type;
@@ -44,6 +46,9 @@
         <LedAnimator
             comps={[displays[hardware.simulation]]}
             nbLeds={ledCount}
+            fps={animation.fps}
+            program={animation.animation}
+            colors={animation.colors}
         />
     </div>
 </div>

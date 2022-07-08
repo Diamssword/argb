@@ -32,6 +32,10 @@ var LedAnimation = /** @class */ (function () {
         this.animation = anim;
         return this;
     };
+    LedAnimation.prototype.setAnimationObj = function (anim) {
+        this.animation = anim.code;
+        return this;
+    };
     LedAnimation.prototype.setTimer = function (timer) {
         this.timer = timer;
         return this;
@@ -46,6 +50,7 @@ var LedAnimation = /** @class */ (function () {
             colors[_i] = arguments[_i];
         }
         this.colors = __spreadArray([], colors, true);
+        this.checkColors();
         return this;
     };
     LedAnimation.prototype.addHtmlColors = function () {
@@ -58,6 +63,7 @@ var LedAnimation = /** @class */ (function () {
             var hsv = (0, ColorsUtil_1.rgb2hsv)(rgb);
             this.colors.push(hsv);
         }
+        this.checkColors();
         return this;
     };
     LedAnimation.prototype.getHTMLColors = function () {
@@ -68,13 +74,19 @@ var LedAnimation = /** @class */ (function () {
         }
         return res;
     };
+    LedAnimation.prototype.checkColors = function () {
+        for (var c in this.colors) {
+            this.colors[c] = (0, ColorsUtil_1.clampHSV)(this.colors[c]);
+        }
+    };
     LedAnimation.prototype.getCommand = function (index) {
+        this.checkColors();
         var cols = "";
         for (var k in this.colors) {
             var col = this.colors[k];
-            cols += col.hue + "/" + col.saturation + "/" + col.value + ",";
+            cols += Math.floor(col.hue) + "/" + Math.floor(col.saturation) + "/" + Math.floor(col.value) + ",";
         }
-        cols = cols.substring(0, cols.length - 2);
+        cols = cols.substring(0, cols.length - 1);
         return "/argb h:".concat(index, ";a:").concat(this.animation, ";f:").concat(this.fps, ";t:").concat(this.timer, ";c:").concat(cols, ";").concat(this.save ? "s:1;" : "");
     };
     LedAnimation.prototype.formJson = function (jsonObj) {

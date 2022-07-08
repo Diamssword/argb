@@ -50,6 +50,17 @@ export function rgb2hsv (rgb:RGB) {
         value: Math.round(percentRoundFn(v * 255))
     };
 }
+export function clampHSV(hsv:HSV):HSV
+{
+    return {hue:clamp(hsv.hue,255),saturation:clamp(hsv.saturation,255),value:clamp(hsv.value,255)};
+}
+function clamp(val:number,max:number )
+{
+   let d= val/max;
+   if(val<=max)
+    return val;
+   return (val -((d|0)*max))|0;
+}
 export function hexToRgb(hex:string) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     var res:RGB= {b:0,g:0,r:0};

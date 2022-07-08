@@ -1,6 +1,6 @@
 import {HSV} from './ColorsUtil'
 export type Anim={
-    code:Number,
+    code:number,
     name:string,
     id : String,
     func : String
@@ -9,9 +9,18 @@ export type Anim={
 export var animations:Anim[]= [
     {code:1,name:"Rainbow",id:"rainbow",func:"rainbow"},
     {code:2,name:"Cylon",id:"cylon",func:"cylon"},
-    {code:3,name:"Odd-Even",id:"oddeven",func:"oddeven"}
+    {code:3,name:"Odd-Even",id:"oddeven",func:"oddeven"},
+    {code:4,name:"Pulse",id:"pulse",func:"pulse"},
+    {code:5,name:"Cable",id:"cable",func:"cable"}
 ]
+export var LIST={
+  Rainbow:animations[0],
+  Cylon:animations[1],
+  OddEven:animations[2],
+  Pulse:animations[3],
+  Cable:animations[4],
 
+}
 export class Emulation {
  emulVars = {
     hue:0,
@@ -92,6 +101,22 @@ oddeven(leds:HSV[])
     leds[k] = col;
     leds[k] = this.fadeBy(leds[k],this.emulVars.hue);
   }
+}
+cable(leds:HSV[])
+{
+    if(!this.emulVars.colors[0])
+    this.emulVars.colors[0]={hue:255,value:255,saturation:255}
+    if(!this.emulVars.colors[1])
+    this.emulVars.colors[1]={hue:255,value:255,saturation:0}
+    this.clear(leds);
+    this.emulVars.pos;
+  for (var k = 0; k < leds.length; k++)
+  {
+    leds[k] = this.emulVars.colors[0];
+  
+  }
+  leds[this.emulVars.pos] = this.emulVars.colors[1];
+  this.IndexChangeReverse(leds.length);
 }
 fadeBy(color:HSV,val : number)
 {

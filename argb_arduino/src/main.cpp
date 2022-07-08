@@ -53,12 +53,12 @@ void IndexChangeReverse(Hardware &hard)
     hard.pos--;
   else
     hard.pos++;
-  if (hard.pos >= hard.end)
+  if (hard.pos > hard.end)
   {
     hard.reverse = true;
-    hard.pos = hard.end - 1;
+    hard.pos = hard.end;
   }
-  else if (hard.pos < 0)
+  else if (hard.pos <= hard.start)
   {
     hard.reverse = false;
     hard.pos = hard.start;
@@ -68,7 +68,7 @@ void IndexChangeReverse(Hardware &hard)
 void IndexChange(Hardware &hard)
 {
   hard.pos++;
-  if (hard.pos >= hard.end)
+  if (hard.pos > hard.end)
   {
     hard.pos = hard.start;
   }
@@ -83,6 +83,15 @@ void cylon(Hardware &hard)
   {
     leds[i].nscale8(250);
   }
+}
+void cable(Hardware &hard)
+{
+   fill_gradient(leds, hard.start, hard.color1, hard.end,hard.color1);
+  leds[hard.pos] = hard.color2;
+  FastLED.show();
+  // fading
+  
+  IndexChangeReverse(hard);
 }
 void pulse(Hardware &hard)
 {
@@ -165,6 +174,9 @@ void setMode(int mode, Hardware &hard)
     hard.hue = 255;
     hard.modeFN = &pulse;
     break;
+     case 5:
+    hard.modeFN = &cable;
+    break;
   default:
     hard.modeFN = &rainbow;
     break;
@@ -178,6 +190,20 @@ uint8_t getMemPosStart(uint8_t hardware)
   if (pos + count >= EEPROM.length())
     return offset;
   return pos;
+}
+void verifyHardLenght()
+{
+  uint16_t tot=0;
+  for(uint8_t d=0;d<hardwareSize;d++)
+  {
+    if(hardwares[d].end>=MAX_LEDS)
+    {
+      hardwares[d].end=MAX_LEDS-1;
+      hardwareSize=d+1;
+      break;
+    }
+    
+  }
 }
 void readConfig(uint8_t hardware)
 {
@@ -233,7 +259,7 @@ void receiveHardCmd(String s)
     s = s.substring(pos + 1);
   }
   fadeToBlackBy(leds, MAX_LEDS, 255);
-
+  verifyHardLenght();
   // TOD definir tout les hardwares d'un coup ici du genre : /hrgb 17;12;3 pour un hard de 17, de 12 puis de 3;
 }
 void receiveCommand(String s)
@@ -330,7 +356,8 @@ void receiveCommand(String s)
 void setup()
 {
   Serial.begin(9600);
-  delay(3000); // 3 second delay for recovery
+  Serial.print("Booting...");
+  delay(1000); // 3 second delay for recovery
   // tell FastLED about the LED strip configuration
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS).setCorrection(TypicalLEDStrip);
 
@@ -346,10 +373,13 @@ void setup()
       readConfig(i);
     }
   }
+  verifyHardLenght();
+  Serial.println("Booted!");
 }
 String serialMsg = "";
 void loop()
 {
+  
   // Call the current pattern function once, updating the 'leds' array
   // FastLED.clear(true);
   // rainbow();
@@ -375,6 +405,7 @@ void loop()
     }
     serialMsg = "";
   }
+  
   delay(1);
   for (uint8_t i = 0; i < hardwareSize; i++)
   {

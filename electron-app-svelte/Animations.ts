@@ -1,4 +1,5 @@
-import {HSV,hexToRgb,rgb2hsv,rgbToHex,HSVtoRGB} from './ColorsUtil'
+import {HSV,hexToRgb,rgb2hsv,rgbToHex,HSVtoRGB,clampHSV} from './ColorsUtil'
+import {animations,Anim} from './AnimationsList'
 export class LedAnimation {
     name: string;
     animation=0;
@@ -24,6 +25,11 @@ export class LedAnimation {
         this.animation=anim;
         return this;
     }
+    setAnimationObj(anim:Anim)
+    {
+        this.animation=anim.code;
+        return this;
+    }
     setTimer(timer:number)
     {
         this.timer=timer;
@@ -37,6 +43,7 @@ export class LedAnimation {
     addColors(...colors: HSV[])
     {
         this.colors=[...colors];
+        this.checkColors();
         return this;
     }
     addHtmlColors(...colors: string[])
@@ -47,6 +54,7 @@ export class LedAnimation {
             var hsv =rgb2hsv(rgb);
             this.colors.push(hsv);
         }
+        this.checkColors();
         return this;
     }
     getHTMLColors()
@@ -60,15 +68,24 @@ export class LedAnimation {
         }
         return res;
     }
+    checkColors()
+    {
+        for(let c in this.colors)
+        {
+           this.colors[c]=clampHSV(this.colors[c]);
+        }
+    }
+    
     getCommand(index:number)
     {
+        this.checkColors();
         var cols="";
         for(var k in this.colors)
         {
             var col= this.colors[k];
-            cols+=col.hue+"/"+col.saturation+"/"+col.value+",";
+            cols+=Math.floor(col.hue)+"/"+Math.floor(col.saturation)+"/"+Math.floor(col.value)+",";
         }
-        cols=cols.substring(0,cols.length-2);
+        cols=cols.substring(0,cols.length-1);
         return `/argb h:${index};a:${this.animation};f:${this.fps};t:${this.timer};c:${cols};${this.save?"s:1;":""}`
     }
     formJson(jsonObj:any )

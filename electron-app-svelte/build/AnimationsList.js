@@ -1,11 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Emulation = exports.animations = void 0;
+exports.Emulation = exports.LIST = exports.animations = void 0;
 exports.animations = [
     { code: 1, name: "Rainbow", id: "rainbow", func: "rainbow" },
     { code: 2, name: "Cylon", id: "cylon", func: "cylon" },
-    { code: 3, name: "Odd-Even", id: "oddeven", func: "oddeven" }
+    { code: 3, name: "Odd-Even", id: "oddeven", func: "oddeven" },
+    { code: 4, name: "Pulse", id: "pulse", func: "pulse" },
+    { code: 5, name: "Cable", id: "cable", func: "cable" }
 ];
+exports.LIST = {
+    Rainbow: exports.animations[0],
+    Cylon: exports.animations[1],
+    OddEven: exports.animations[2],
+    Pulse: exports.animations[3],
+    Cable: exports.animations[4],
+};
 var Emulation = /** @class */ (function () {
     function Emulation() {
         this.emulVars = {
@@ -72,6 +81,19 @@ var Emulation = /** @class */ (function () {
             leds[k] = col;
             leds[k] = this.fadeBy(leds[k], this.emulVars.hue);
         }
+    };
+    Emulation.prototype.cable = function (leds) {
+        if (!this.emulVars.colors[0])
+            this.emulVars.colors[0] = { hue: 255, value: 255, saturation: 255 };
+        if (!this.emulVars.colors[1])
+            this.emulVars.colors[1] = { hue: 255, value: 255, saturation: 0 };
+        this.clear(leds);
+        this.emulVars.pos;
+        for (var k = 0; k < leds.length; k++) {
+            leds[k] = this.emulVars.colors[0];
+        }
+        leds[this.emulVars.pos] = this.emulVars.colors[1];
+        this.IndexChangeReverse(leds.length);
     };
     Emulation.prototype.fadeBy = function (color, val) {
         var res = { hue: color.hue, value: color.value, saturation: color.saturation };

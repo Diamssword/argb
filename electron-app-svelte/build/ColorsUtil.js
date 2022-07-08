@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HSVtoRGB = exports.rgbToHex = exports.hexToRgb = exports.rgb2hsv = void 0;
+exports.HSVtoRGB = exports.rgbToHex = exports.hexToRgb = exports.clampHSV = exports.rgb2hsv = void 0;
 function rgb2hsv(rgb) {
     var rabs, gabs, babs, rr, gg, bb, s, diff = 0;
     var h = 0;
@@ -43,6 +43,16 @@ function rgb2hsv(rgb) {
     };
 }
 exports.rgb2hsv = rgb2hsv;
+function clampHSV(hsv) {
+    return { hue: clamp(hsv.hue, 255), saturation: clamp(hsv.saturation, 255), value: clamp(hsv.value, 255) };
+}
+exports.clampHSV = clampHSV;
+function clamp(val, max) {
+    var d = val / max;
+    if (val <= max)
+        return val;
+    return (val - ((d | 0) * max)) | 0;
+}
 function hexToRgb(hex) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     var res = { b: 0, g: 0, r: 0 };

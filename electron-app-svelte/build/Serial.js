@@ -46,7 +46,7 @@ function init(main) {
                     ev.reply("Serial.ports", { ports: ports });
             }
         }, function (err) {
-            ev.sender.send("error", err.message);
+            ev.reply("error", err.message);
         });
     });
     electron_1.ipcMain.on("Serial.connect", function (ev) {
@@ -55,14 +55,14 @@ function init(main) {
             args[_i - 1] = arguments[_i];
         }
         if (currentPort && currentPort.path == args[0]) {
-            ev.sender.send("Serial.state", { connected: currentPort.path });
+            ev.reply("Serial.state", { connected: currentPort.path });
         }
         else {
             if (currentPort && currentPort.isOpen)
                 currentPort.close();
             currentPort = new serialport_1.SerialPort({ path: args[0], baudRate: 9600 }, function (err) {
                 if (err) {
-                    ev.sender.send("error", "Impossible d'ouvrir le port " + args[0]);
+                    ev.reply("Serial.error", { error: "open", port: args[0] });
                     currentPort = undefined;
                 }
             });
@@ -70,9 +70,11 @@ function init(main) {
                 store.set("lastPort", args[0]);
                 store.save();
                 openPort(currentPort, main);
-                ev.sender.send("Serial.state", { connected: currentPort.path });
+                ev.reply("Serial.state", { connected: currentPort.path });
             }
-            ev.sender.send("Serial.state", {});
+            else {
+                ev.reply("Serial.error", { error: "open", port: args[0] });
+            }
         }
     });
 }
@@ -81,6 +83,7 @@ function openPort(port, window) {
     port.on('data', function (data) {
         window.webContents.send("Serial.receive", data.toString());
     });
+    electron_1.ipcMain.removeAllListeners("Serial.send");
     electron_1.ipcMain.on("Serial.send", function (ev, args) {
         port.write(args + '\n', function (err) {
             if (err) {

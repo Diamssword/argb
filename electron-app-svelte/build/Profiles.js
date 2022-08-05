@@ -5,11 +5,13 @@ var Animations_1 = require("./Animations");
 var Hardwares_1 = require("./Hardwares");
 var storage_1 = require("./storage");
 var electron_1 = require("electron");
-var store = new storage_1.StorageInstance("temp", "temp");
-var hardwareStore = new storage_1.StorageInstance("temp", "temp");
+var store;
+var hardwareStore;
+var animationStore;
 function init(window) {
     store = new storage_1.StorageInstance("profile");
     hardwareStore = new storage_1.StorageInstance("hardwares");
+    animationStore = new storage_1.StorageInstance("animations");
     electron_1.ipcMain.on("hardware.save", function (ev, args) {
         hardwareStore.set(args.name, getVHardwareList(args.port, args.hard));
     });
@@ -52,22 +54,50 @@ function init(window) {
             hardwareStore.delete(pr);
         }
     });
+    electron_1.ipcMain.on("animation.save", function (ev, args) {
+        animationStore.set(args.name, args.animation);
+    });
+    electron_1.ipcMain.on("animation.request", function (ev, args) {
+        var d = animationStore.get(args);
+        if (!d)
+            d = new Animations_1.LedAnimation(args);
+        ev.reply("animation.request", d);
+    });
+    electron_1.ipcMain.on("animation.profiles", function (ev, args) {
+        var d = animationStore.getAll();
+        if (!d)
+            d = {};
+        ev.reply("animation.profiles", Object.keys(d));
+    });
+    electron_1.ipcMain.on("animation.editProfile", function (ev, args) {
+        var pr = args.name;
+        var op = args.operation;
+        if (op == "new") {
+            var i = 1;
+            while (animationStore.get(pr + "" + i)) {
+                i++;
+            }
+            animationStore.set(pr + "" + i, {});
+            ev.reply("animation.editProfile", { operation: "new", name: pr + "" + i });
+        }
+        else if (op == "rename") {
+            var a = animationStore.get(pr);
+            var b = animationStore.get(args.rename);
+            if (a && !b) {
+                animationStore.delete(pr);
+                animationStore.set(args.rename, a);
+                ev.reply("animation.editProfile", { operation: "rename", from: pr, to: args.rename });
+            }
+            else {
+                ev.reply("animation.editProfile", { operation: "rename", error: "CANT" });
+            }
+        }
+        else if (op == "delete") {
+            animationStore.delete(pr);
+        }
+    });
     electron_1.ipcMain.on("vhardware.request", function (ev, args) {
         ev.reply("vhardware.request", getVHardwareList(args.port, args.hard));
-    });
-    electron_1.ipcMain.on("animation.save", function (ev, args) {
-        var anim = store.get("animations");
-        if (anim == undefined)
-            anim = {};
-        anim[args.hardware] = args.anim;
-        store.set("animations", anim);
-    });
-    electron_1.ipcMain.on("animations.request", function (ev, args) {
-        var d = store.get("animations");
-        if (!d) {
-            d = {};
-        }
-        ev.reply("animations.request", d);
     });
 }
 exports.init = init;

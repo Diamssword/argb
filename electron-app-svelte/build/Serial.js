@@ -91,9 +91,6 @@ function openPort(port, window) {
             }
         });
     });
-    var led = (0, Profiles_1.getCurrent)();
-    if (led)
-        send(led.getCommand(0));
 }
 function send(str) {
     if (currentPort === null || currentPort === void 0 ? void 0 : currentPort.isOpen) {

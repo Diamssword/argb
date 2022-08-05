@@ -41,6 +41,12 @@ import { LIST } from "../../build/AnimationsList";
     connections = [...connections];
     if (hardwares.length == 0)
       hardwares.push(new Hardware(0, "default0", 0, TYPES.fan));
+   
+    refreshAnimations();
+
+  });
+  function refreshAnimations()
+  {
     let p =0;
     let ratio = 256/vHardwares.length;
     for(let d in vHardwares)
@@ -51,8 +57,7 @@ import { LIST } from "../../build/AnimationsList";
             p++;
         }
     }
-
-  });
+  }
   window.send("hardware.profiles");
   window.receive("hardware.profiles", (args) => {
     profileList = args;
@@ -185,6 +190,19 @@ View Live:
 <PortSelect autoConnect={false} on:connected={(e)=>{COMconn = e.detail.port}} />
 <div>
   {#each hardwares as hard, i}
+  <ActionIcon
+  variant="outline"
+  color="yellow"
+  on:click={() => {
+    hardwares.splice(i,1);
+    connections.splice(i,1);
+    connections=[...connections];
+    hardwares=[...hardwares];
+    refreshAnimations();
+  }}>
+  <Icon
+    name="x-circle" direction="e" />
+</ActionIcon>
     <HardwareComp bind:hardware={hardwares[i]} animation={animations[i]} />
     {#if i < hardwares.length - 1}
       <div class="wrapper">
@@ -224,6 +242,7 @@ View Live:
           TYPES.fan
         ),
       ];
+      refreshAnimations();
     }}>+</Button>
   <div class="inline">
     <Button

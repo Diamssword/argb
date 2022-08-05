@@ -2,12 +2,14 @@ import { LedAnimation } from './Animations';
 import { Hardware ,VirtualHardware} from './Hardwares';
 import {StorageInstance} from './storage'
 import {BrowserWindow,ipcMain,IpcMain} from 'electron'
-var store= new StorageInstance("temp","temp");
-var hardwareStore= new StorageInstance("temp","temp");
+var store:StorageInstance;
+var hardwareStore:StorageInstance;
+var animationStore:StorageInstance;
 export function init(window:BrowserWindow)
 {
  store= new StorageInstance("profile");
- hardwareStore = new StorageInstance("hardwares")
+ hardwareStore = new StorageInstance("hardwares");
+ animationStore = new StorageInstance("animations");
  
 ipcMain.on("hardware.save",(ev,args)=>{
     hardwareStore.set(args.name,getVHardwareList(args.port,args.hard))
@@ -58,24 +60,62 @@ ipcMain.on("hardware.request",(ev,args)=>{
         hardwareStore.delete(pr);
     }
  })
+  
+
+
+ipcMain.on("animation.save",(ev,args)=>{
+    animationStore.set(args.name,args.animation)
+})
+ipcMain.on("animation.request",(ev,args)=>{
+    var d= animationStore.get(args);
+    if(!d)
+    d=new LedAnimation(args);
+        ev.reply("animation.request",d);
+ })
+ ipcMain.on("animation.profiles",(ev,args)=>{
+    var d= animationStore.getAll()
+    if(!d)
+    d={};
+        ev.reply("animation.profiles", Object.keys(d));
+ })
+ ipcMain.on("animation.editProfile",(ev,args)=>{
+    let pr = args.name;
+    let op = args.operation
+    if(op =="new")
+    {
+        
+        let i=1;
+        while(animationStore.get(pr+""+i))
+        {
+        i++
+        }   
+        animationStore.set(pr+""+i,{});   
+        ev.reply("animation.editProfile",{operation:"new",name:pr+""+i});  
+    }
+    else if(op == "rename")
+    {
+        let a=animationStore.get(pr);
+        let b=animationStore.get(args.rename);
+        if(a && !b)
+        {
+            animationStore.delete(pr);
+            animationStore.set(args.rename,a);
+            ev.reply("animation.editProfile",{operation:"rename",from:pr,to:args.rename});  
+        }
+        else
+        {
+            ev.reply("animation.editProfile",{operation:"rename",error:"CANT"});  
+        }
+    }
+    else if(op == "delete")
+    {
+        animationStore.delete(pr);
+    }
+ })
  ipcMain.on("vhardware.request",(ev,args)=>{
         ev.reply("vhardware.request",getVHardwareList(args.port,args.hard));
  })
- ipcMain.on("animation.save",(ev,args)=>{
-    let anim:any=store.get("animations");
-    if(anim == undefined)
-        anim={};
-        anim[args.hardware]=args.anim;
-        store.set("animations",anim);
- })
- ipcMain.on("animations.request",(ev,args)=>{
-    let d=store.get("animations")
-    if(!d)
-    {
-        d={};
-    }
-         ev.reply("animations.request",d);
-  })
+
 
 }
 export function getVHardwareList(port:string,hards:Hardware[])

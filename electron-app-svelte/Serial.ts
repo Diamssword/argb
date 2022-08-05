@@ -94,9 +94,6 @@ function openPort(port:SerialPort,window:BrowserWindow )
             }
           })
       })
-      var led=getCurrent()
-      if(led)
-      send(led.getCommand(0));
 }
 export function send(str:string)
 {
